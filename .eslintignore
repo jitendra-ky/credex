@@ -1,0 +1,7 @@
+.next
+dist
+build
+node_modules
+coverage
+.git
+public
