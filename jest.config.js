@@ -31,6 +31,20 @@ const customJestConfig = {
     '!src/**/*.stories.{js,jsx,ts,tsx}',
     '!src/**/__tests__/**',
   ],
+  // Projects for running different test suites with different environments
+  projects: [
+    {
+      displayName: 'unit',
+      testEnvironment: 'jest-environment-jsdom',
+      testPathIgnorePatterns: ['<rootDir>/src/app/api/'],
+    },
+    {
+      displayName: 'api',
+      testEnvironment: 'node',
+      setupFilesAfterEnv: ['<rootDir>/jest.setup.node.js'],
+      testMatch: ['<rootDir>/src/app/api/**/*.test.ts', '<rootDir>/src/app/api/**/*.test.tsx'],
+    },
+  ],
 };
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
