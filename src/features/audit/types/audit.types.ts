@@ -122,6 +122,7 @@ export interface AuditResult {
   total_monthly_savings_usd: number;
   total_annual_savings_usd: number;
   audit_tag: AuditTag;
+  ai_summary: string;
   created_at: Date;
 }
 

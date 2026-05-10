@@ -71,6 +71,7 @@ export async function POST(request: NextRequest) {
         total_monthly_savings_usd: auditResult.total_monthly_savings_usd,
         total_annual_savings_usd: auditResult.total_annual_savings_usd,
         audit_tag: auditResult.audit_tag,
+        ai_summary: auditResult.ai_summary,
       },
       200,
     );

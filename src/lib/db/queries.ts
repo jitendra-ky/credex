@@ -25,6 +25,7 @@ export async function createAudit(
   const newAudit: NewAudit = {
     tools_json: auditRequest as unknown as Record<string, unknown>,
     results_json: auditResult as unknown as Record<string, unknown>,
+    summary: auditResult.ai_summary,
     tag: auditResult.audit_tag as AuditTag,
   };
 

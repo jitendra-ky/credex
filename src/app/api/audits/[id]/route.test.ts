@@ -44,6 +44,7 @@ describe('GET /api/audits/:id', () => {
           audit_tag: 'medium',
           created_at: new Date(),
         } as any,
+        summary: 'Mock AI summary for all audits',
         tag: 'medium',
         created_at: new Date(),
         updated_at: new Date(),

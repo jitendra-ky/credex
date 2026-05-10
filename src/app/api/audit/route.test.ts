@@ -108,6 +108,7 @@ describe('POST /api/audit', () => {
         total_monthly_savings_usd: 100,
         total_annual_savings_usd: 1200,
         audit_tag: 'medium',
+        ai_summary: 'Mock AI summary for all audits',
         created_at: new Date(),
       };
 
@@ -115,6 +116,7 @@ describe('POST /api/audit', () => {
         id: 'test-audit-id-123',
         tools_json: mockAuditRequest,
         results_json: mockAuditResult,
+        summary: 'Mock AI summary for all audits',
         tag: 'medium',
         created_at: new Date(),
         updated_at: new Date(),
@@ -352,6 +354,7 @@ describe('POST /api/audit', () => {
         total_monthly_savings_usd: 0,
         total_annual_savings_usd: 0,
         audit_tag: 'optimal',
+        ai_summary: 'Mock AI summary for all audits',
         created_at: new Date(),
       };
 

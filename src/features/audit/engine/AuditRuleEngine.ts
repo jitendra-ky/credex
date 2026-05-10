@@ -48,12 +48,16 @@ export class AuditRuleEngine {
     // Determine audit tag based on total savings
     const auditTag = this.determineAuditTag(totalMonthlySavings);
 
+    // Generate mock AI summary
+    const aiSummary = this.generateMockSummary();
+
     return {
       audit_id: this.generateAuditId(),
       findings,
       total_monthly_savings_usd: Math.round(totalMonthlySavings * 100) / 100,
       total_annual_savings_usd: Math.round(totalAnnualSavings * 100) / 100,
       audit_tag: auditTag,
+      ai_summary: aiSummary,
       created_at: new Date(),
     };
   }
@@ -80,5 +84,13 @@ export class AuditRuleEngine {
       const v = c === 'x' ? r : (r & 0x3) | 0x8;
       return v.toString(16);
     });
+  }
+
+  /**
+   * Generate mock AI summary (placeholder for future AI integration)
+   * Currently returns the same mock summary for all audits
+   */
+  private generateMockSummary(): string {
+    return 'Based on the comprehensive audit of your current AI tool stack, we identified significant optimization opportunities across multiple categories. The analysis reveals inefficiencies in your current plan selections and potential cost redundancies. By implementing the recommended changes, your organization can achieve substantial monthly savings while maintaining or improving security posture and feature coverage. The audit flagged critical areas where plan downgrades, consolidation, or alternative solutions could provide immediate relief without compromising productivity.';
   }
 }

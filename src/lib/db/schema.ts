@@ -39,6 +39,7 @@ export const auditsTable = pgTable('audits', {
   id: uuid('id').primaryKey().defaultRandom(),
   tools_json: jsonb('tools_json').notNull(),
   results_json: jsonb('results_json').notNull(),
+  summary: text('summary'),
   tag: auditTagEnum('tag').notNull(),
   created_at: timestamp('created_at', { withTimezone: true })
     .defaultNow()
