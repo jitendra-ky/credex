@@ -33,6 +33,7 @@ let db: ReturnType<typeof drizzle> | null = null;
 /**
  * Get or create the database client
  * Ensures single connection pool throughout application lifecycle
+ * Only initializes when first called.
  */
 export const getDb = (): ReturnType<typeof drizzle> => {
   if (!db) {
@@ -41,6 +42,3 @@ export const getDb = (): ReturnType<typeof drizzle> => {
   }
   return db;
 };
-
-// Export for convenience in modules that always need the db
-export default getDb();

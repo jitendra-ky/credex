@@ -26,6 +26,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Create test env file
+        run: |
+          echo "DATABASE_URL=postgresql://test:test@localhost/test" > .env
+          echo "NEXTAUTH_SECRET=test-secret" >> .env
+          echo "NEXTAUTH_URL=http://localhost:3000" >> .env
+
       - name: Run lint
         run: npm run lint
 
