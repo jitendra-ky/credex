@@ -61,4 +61,28 @@
 - Integrate Anthropic API (claude-sonnet-4) for ~100-word AI-generated audit summaries.
 - Implement lead capture: POST /api/leads endpoint for email + company info.
 
+## Day 4 - 2026-05-10
+**Hours worked:** 4
+
+**What I did:**
+- Started with a big refactor to clean up the code structure. Things were getting messy and I needed to make it easier to work with. Touched 4 files across the project.
+- Spent a good chunk of time wrestling with Jest configuration. Got the test setup files aligned and improved the API test cases. Removed some dead code (27 insertions, 43 deletions total).
+- Fixed an annoying issue with the database client not lazy-loading properly. Also added some bootstrap logic for CI tests so they don't fail randomly due to env issues.
+- Started working on persisting the mock AI summary with audit results. Added it to 9 files, mostly schema and service layer updates. Good foundation before we hook up the real Anthropic API.
+
+**What I learned:**
+- Lazy-loading actually matters way more than I thought for test startup times.
+- Breaking changes into small, focused commits makes reviewing your own code later so much easier.
+- Starting with mock data is the right move. Lets you test the whole flow before dealing with API rate limits and costs.
+- Jest has so many config knobs. Spent way too much time tweaking things that probably don't matter much.
+
+**Blockers / What I'm stuck on:**
+- Tests are still flaky when running in CI. Need to investigate why the database setup isn't consistent.
+- Still haven't integrated the real Anthropic API — just using mocks for now.
+
+**Plan for tomorrow:**
+- Hook up Anthropic API so we actually get real AI summaries instead of fake ones.
+- Build out the lead capture endpoint (POST /api/leads).
+- Do some end-to-end testing to make sure the whole flow works.
+
 
