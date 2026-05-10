@@ -1,8 +1,6 @@
-/**
- * @jest-environment node
- * GET /api/audits/:id Integration Tests
- * Tests audit retrieval by ID and error handling
- */
+/** @jest-environment node */
+// GET /api/audits/:id integration tests
+// Validates retrieval by ID and error handling.
 
 import { GET } from './route';
 import * as queriesModule from '@/lib/db/queries';
@@ -25,7 +23,7 @@ describe('GET /api/audits/:id', () => {
     it('should return audit when found', async () => {
       // Arrange
       const mockAudit: Audit = {
-        id: 'test-audit-id-123',
+        id: '550e8400-e29b-41d4-a716-446655440000',
         tools_json: {
           global_context: {
             total_team_size: 10,
@@ -39,7 +37,7 @@ describe('GET /api/audits/:id', () => {
           current_stack: {},
         } as any,
         results_json: {
-          audit_id: 'test-audit-id-123',
+          audit_id: '550e8400-e29b-41d4-a716-446655440000',
           findings: [],
           total_monthly_savings_usd: 100,
           total_annual_savings_usd: 1200,
@@ -57,17 +55,17 @@ describe('GET /api/audits/:id', () => {
 
       // Act
       const response = await GET(mockRequest, {
-        params: { id: 'test-audit-id-123' },
+        params: { id: '550e8400-e29b-41d4-a716-446655440000' },
       });
       const data = await response.json();
 
       // Assert
       expect(response.status).toBe(200);
       expect(data.success).toBe(true);
-      expect(data.data.id).toBe('test-audit-id-123');
+      expect(data.data.id).toBe('550e8400-e29b-41d4-a716-446655440000');
       expect(data.data.tag).toBe('medium');
       expect(queriesModule.getAuditById).toHaveBeenCalledWith(
-        'test-audit-id-123',
+        '550e8400-e29b-41d4-a716-446655440000',
       );
     });
   });

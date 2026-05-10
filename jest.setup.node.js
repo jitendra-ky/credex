@@ -1,5 +1,5 @@
-import dotenv from 'dotenv';
-import path from 'path';
+const dotenv = require('dotenv');
+const path = require('path');
 
-// Load .env file for Node.js test environment (API routes, database tests)
+// Load .env for tests that depend on server-side configuration.
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });

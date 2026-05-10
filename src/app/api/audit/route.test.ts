@@ -1,8 +1,6 @@
-/**
- * @jest-environment node
- * POST /api/audit Integration Tests
- * Tests audit request validation, service execution, and persistence
- */
+/** @jest-environment node */
+// POST /api/audit integration tests
+// Validates request handling, service execution, and persistence.
 
 import { POST } from './route';
 import { AuditService } from '@/features/audit/services/AuditService';
@@ -48,7 +46,7 @@ describe('POST /api/audit', () => {
           claude_gui: {
             is_active: false,
             current_plan: 'free',
-            number_of_seats: 0,
+            number_of_seats: 1,
             billing_cycle: 'monthly',
             current_monthly_spend_usd: 0,
           },
@@ -62,14 +60,14 @@ describe('POST /api/audit', () => {
           gemini: {
             is_active: false,
             current_plan: 'free',
-            number_of_seats: 0,
+            number_of_seats: 1,
             billing_cycle: 'monthly',
             current_monthly_spend_usd: 0,
           },
           v0_vercel: {
             is_active: false,
             current_plan: 'free',
-            number_of_seats: 0,
+            number_of_seats: 1,
             has_vercel_pro_infrastructure_active: false,
             current_monthly_spend_usd: 0,
           },
@@ -216,28 +214,28 @@ describe('POST /api/audit', () => {
           claude_gui: {
             is_active: false,
             current_plan: 'free',
-            number_of_seats: 0,
+            number_of_seats: 1,
             billing_cycle: 'monthly',
             current_monthly_spend_usd: 0,
           },
           chatgpt_gui: {
             is_active: false,
             current_plan: 'free',
-            number_of_seats: 0,
+            number_of_seats: 1,
             billing_cycle: 'monthly',
             current_monthly_spend_usd: 0,
           },
           gemini: {
             is_active: false,
             current_plan: 'free',
-            number_of_seats: 0,
+            number_of_seats: 1,
             billing_cycle: 'monthly',
             current_monthly_spend_usd: 0,
           },
           v0_vercel: {
             is_active: false,
             current_plan: 'free',
-            number_of_seats: 0,
+            number_of_seats: 1,
             has_vercel_pro_infrastructure_active: false,
             current_monthly_spend_usd: 0,
           },
@@ -304,28 +302,28 @@ describe('POST /api/audit', () => {
           claude_gui: {
             is_active: false,
             current_plan: 'free',
-            number_of_seats: 0,
+            number_of_seats: 1,
             billing_cycle: 'monthly',
             current_monthly_spend_usd: 0,
           },
           chatgpt_gui: {
             is_active: false,
             current_plan: 'free',
-            number_of_seats: 0,
+            number_of_seats: 1,
             billing_cycle: 'monthly',
             current_monthly_spend_usd: 0,
           },
           gemini: {
             is_active: false,
             current_plan: 'free',
-            number_of_seats: 0,
+            number_of_seats: 1,
             billing_cycle: 'monthly',
             current_monthly_spend_usd: 0,
           },
           v0_vercel: {
             is_active: false,
             current_plan: 'free',
-            number_of_seats: 0,
+            number_of_seats: 1,
             has_vercel_pro_infrastructure_active: false,
             current_monthly_spend_usd: 0,
           },
