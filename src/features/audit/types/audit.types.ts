@@ -34,7 +34,7 @@ export interface GlobalContext {
 // Tool-specific inputs
 export interface ToolConfig {
   is_active: boolean;
-  current_plan: string;
+  current_plan?: string;
   number_of_seats?: number;
   billing_cycle?: BillingCycle;
   current_monthly_spend_usd: number;

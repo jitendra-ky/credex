@@ -109,7 +109,7 @@ export class ChatGPTGoTierProductivityLossRule extends BaseAuditRule {
     }
 
     // Only flag for non-casual use cases
-    const isCasualUse = useCase === 'casual' || useCase === 'research'; // Weak heuristic
+    const isCasualUse = useCase === 'research'; // Weak heuristic
     if (isCasualUse) {
       return [];
     }
