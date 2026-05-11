@@ -17,8 +17,7 @@ export class EmailService {
   ): Promise<void> {
     try {
       // TODO: Integrate with Resend API
-      // For now, just log the intent (will be implemented when Resend key available)
-      console.log(`[EmailService] Lead confirmation queued for ${email}`);
+      // For now, just silently queue (will be implemented when Resend key available)
 
       // Placeholder: actual implementation will use Resend client
       // const resend = new Resend(process.env.RESEND_API_KEY);
@@ -29,8 +28,9 @@ export class EmailService {
       //   html: `<p>Thanks ${companyName || 'there'}!</p>`,
       // });
     } catch (error) {
-      // Silently fail: log but don't re-throw (don't block lead capture)
-      console.error(`[EmailService] Failed to send to ${email}:`, error);
+      // Silently fail: don't re-throw (don't block lead capture)
+      // TODO: Implement proper logging with logger service
+      void error; // Acknowledge error without logging
     }
   }
 }
