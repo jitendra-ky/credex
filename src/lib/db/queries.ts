@@ -5,8 +5,8 @@
  */
 
 import { getDb } from './client';
-import { auditsTable, type NewAudit, type Audit } from './schema';
-import { eq } from 'drizzle-orm';
+import { auditsTable, leadsTable, type NewAudit, type Audit, type NewLead, type Lead } from './schema';
+import { eq, and, gte } from 'drizzle-orm';
 import { AuditRequest, AuditResult, AuditTag } from '@/features/audit/types/audit.types';
 
 /**
@@ -79,4 +79,100 @@ export async function listAudits(
     .offset(offset);
 
   return audits;
+}
+
+/**
+ * Upsert a lead record (insert or update if email already exists)
+ * @param email - The lead's email address (unique key for upsert)
+ * @param company_name - The lead's company name (optional)
+ * @param role - The lead's job role (optional)
+ * @param ip_address - The client IP address for rate limiting
+ * @param audit_id - Optional reference to an audit record
+ * @returns The upserted lead record
+ * @throws Error if database operation fails
+ */
+export async function upsertLead(
+  email: string,
+  company_name: string | null,
+  role: string | null,
+  ip_address: string,
+  audit_id?: string | null,
+): Promise<Lead> {
+  const db = getDb();
+
+  const newLead: NewLead = {
+    email,
+    company_name,
+    role,
+    ip_address,
+    audit_id: audit_id || null,
+    updated_at: new Date(),
+  };
+
+  const [upserted] = await db
+    .insert(leadsTable)
+    .values(newLead)
+    .onConflictDoUpdate({
+      target: leadsTable.email,
+      set: {
+        company_name,
+        role,
+        audit_id: audit_id || null,
+        updated_at: new Date(),
+      },
+    })
+    .returning();
+
+  if (!upserted) {
+    throw new Error('Failed to upsert lead record');
+  }
+
+  return upserted;
+}
+
+/**
+ * Fetch a lead record by email
+ * @param email - The email address to search for
+ * @returns The lead record if found, undefined otherwise
+ * @throws Error if database query fails
+ */
+export async function getLeadByEmail(email: string): Promise<Lead | undefined> {
+  const db = getDb();
+
+  const [lead] = await db
+    .select()
+    .from(leadsTable)
+    .where(eq(leadsTable.email, email));
+
+  return lead;
+}
+
+/**
+ * Fetch all leads from a specific IP within a time window
+ * Used for rate limiting abuse detection
+ * @param ip_address - The IP address to query
+ * @param minutes - Time window in minutes (default: 15)
+ * @returns Array of leads from this IP within the time window
+ * @throws Error if database query fails
+ */
+export async function getLeadsByIpInWindow(
+  ip_address: string,
+  minutes: number = 15,
+): Promise<Lead[]> {
+  const db = getDb();
+
+  const cutoffTime = new Date(Date.now() - minutes * 60 * 1000);
+
+  const leads = await db
+    .select()
+    .from(leadsTable)
+    .where(
+      and(
+        eq(leadsTable.ip_address, ip_address),
+        gte(leadsTable.created_at, cutoffTime),
+      ),
+    )
+    .orderBy(leadsTable.created_at);
+
+  return leads;
 }
