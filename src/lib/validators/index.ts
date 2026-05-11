@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Request Validators
  * Single Responsibility: Define Zod schemas for request validation
  * Ensures type-safe request validation at API boundaries
@@ -230,21 +230,20 @@ export const leadRequestSchema = z.object({
   email: z
     .string()
     .trim()
-    .toLowerCase()
-    .email('Invalid email address'),
+    .email('Invalid email address')
+    .transform(v => v.toLowerCase()),
   company_name: z
     .string()
     .trim()
     .nullable()
-    .optional()
-    .transform(v => v || null),
+    .optional(),
   role: z
     .string()
     .trim()
     .nullable()
-    .optional()
-    .transform(v => v || null),
+    .optional(),
   audit_id: z.string().uuid('Invalid audit ID format').optional(),
 });
 
 export type ValidatedLeadRequest = z.infer<typeof leadRequestSchema>;
+
