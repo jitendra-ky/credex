@@ -221,3 +221,30 @@ export const auditIdParamSchema = z.object({
 });
 
 export type ValidatedAuditIdParam = z.infer<typeof auditIdParamSchema>;
+
+/**
+ * Lead capture request schema
+ * Validates incoming POST /api/leads requests
+ */
+export const leadRequestSchema = z.object({
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .email('Invalid email address'),
+  company_name: z
+    .string()
+    .trim()
+    .nullable()
+    .optional()
+    .transform(v => v || null),
+  role: z
+    .string()
+    .trim()
+    .nullable()
+    .optional()
+    .transform(v => v || null),
+  audit_id: z.string().uuid('Invalid audit ID format').optional(),
+});
+
+export type ValidatedLeadRequest = z.infer<typeof leadRequestSchema>;
