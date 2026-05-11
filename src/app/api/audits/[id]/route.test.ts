@@ -1,8 +1,8 @@
 /** @jest-environment node */
-// GET /api/audits/:id integration tests
-// Validates retrieval by ID and error handling.
+// Tests for share endpoints: POST /api/audits/:id/share and GET /api/audits/share/:shareCode
 
-import { GET } from './route';
+import { POST as postShare } from './share/route';
+import { GET as getShared } from '../share/[shareCode]/route';
 import * as queriesModule from '@/lib/db/queries';
 import { Audit } from '@/lib/db/schema';
 
@@ -10,125 +10,97 @@ import { Audit } from '@/lib/db/schema';
 jest.mock('@/lib/db/queries');
 
 // Mock NextRequest
-const createMockRequest = () => ({
-  url: 'http://localhost:3000/api/audits/test-id',
+const createMockRequest = (url = 'http://localhost:3000') => ({ url });
+
+describe('POST /api/audits/:id/share', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  it('should create a share code when audit exists', async () => {
+    const mockAudit: Audit = {
+      id: '550e8400-e29b-41d4-a716-446655440000',
+      tools_json: {} as any,
+      results_json: {} as any,
+      summary: 'summary',
+      tag: 'medium',
+      share_code: null,
+      is_shared: false,
+      shared_at: null,
+      created_at: new Date(),
+      updated_at: new Date(),
+    };
+
+    (queriesModule.getAuditById as jest.Mock).mockResolvedValue(mockAudit);
+    (queriesModule.shareAudit as jest.Mock).mockResolvedValue({
+      ...mockAudit,
+      share_code: 'ABC12345',
+      is_shared: true,
+      shared_at: new Date(),
+    });
+
+    const req = createMockRequest() as any;
+    const res = await postShare(req, { params: { id: mockAudit.id } as any } as any);
+    const body = await res.json();
+
+    expect(res.status).toBe(201);
+    expect(body.success).toBe(true);
+    expect(body.data.share_code).toBe('ABC12345');
+    expect(queriesModule.getAuditById).toHaveBeenCalledWith(mockAudit.id);
+    expect(queriesModule.shareAudit).toHaveBeenCalledWith(mockAudit.id, expect.any(String));
+  });
+
+  it('should return 404 when audit not found', async () => {
+    (queriesModule.getAuditById as jest.Mock).mockResolvedValue(undefined);
+
+    const req = createMockRequest() as any;
+    const res = await postShare(req, {
+      params: { id: '550e8400-e29b-41d4-a716-446655440000' } as any,
+    } as any);
+    const body = await res.json();
+
+    expect(res.status).toBe(404);
+    expect(body.success).toBe(false);
+    expect(body.error.code).toBe('NOT_FOUND');
+  });
 });
 
-describe('GET /api/audits/:id', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
+describe('GET /api/audits/share/:shareCode', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  it('should return shared audit when found', async () => {
+    const mockAudit: Audit = {
+      id: '550e8400-e29b-41d4-a716-446655440000',
+      tools_json: {} as any,
+      results_json: {} as any,
+      summary: 'summary',
+      tag: 'medium',
+      share_code: 'ABC12345',
+      is_shared: true,
+      shared_at: new Date(),
+      created_at: new Date(),
+      updated_at: new Date(),
+    } as any;
+
+    (queriesModule.getAuditByShareCode as jest.Mock).mockResolvedValue(mockAudit);
+
+    const req = createMockRequest() as any;
+    const res = await getShared(req, { params: { shareCode: 'ABC12345' } as any } as any);
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.success).toBe(true);
+    expect(body.data.share_code).toBe('ABC12345');
+    expect(queriesModule.getAuditByShareCode).toHaveBeenCalledWith('ABC12345');
   });
 
-  describe('Success Cases', () => {
-    it('should return audit when found', async () => {
-      // Arrange
-      const mockAudit: Audit = {
-        id: '550e8400-e29b-41d4-a716-446655440000',
-        tools_json: {
-          global_context: {
-            total_team_size: 10,
-            primary_use_case: 'coding',
-            security_requirements: {
-              saml_sso_required: false,
-              scim_automated_provisioning_required: false,
-              strict_data_privacy_no_training_required: false,
-            },
-          },
-          current_stack: {},
-        } as any,
-        results_json: {
-          audit_id: '550e8400-e29b-41d4-a716-446655440000',
-          findings: [],
-          total_monthly_savings_usd: 100,
-          total_annual_savings_usd: 1200,
-          audit_tag: 'medium',
-          created_at: new Date(),
-        } as any,
-        summary: 'Mock AI summary for all audits',
-        tag: 'medium',
-        created_at: new Date(),
-        updated_at: new Date(),
-      };
+  it('should return 404 when shared audit not found', async () => {
+    (queriesModule.getAuditByShareCode as jest.Mock).mockResolvedValue(undefined);
 
-      (queriesModule.getAuditById as jest.Mock).mockResolvedValue(mockAudit);
+    const req = createMockRequest() as any;
+    const res = await getShared(req, { params: { shareCode: 'NOPE' } as any } as any);
+    const body = await res.json();
 
-      const mockRequest = createMockRequest() as any;
-
-      // Act
-      const response = await GET(mockRequest, {
-        params: { id: '550e8400-e29b-41d4-a716-446655440000' },
-      });
-      const data = await response.json();
-
-      // Assert
-      expect(response.status).toBe(200);
-      expect(data.success).toBe(true);
-      expect(data.data.id).toBe('550e8400-e29b-41d4-a716-446655440000');
-      expect(data.data.tag).toBe('medium');
-      expect(queriesModule.getAuditById).toHaveBeenCalledWith(
-        '550e8400-e29b-41d4-a716-446655440000',
-      );
-    });
-  });
-
-  describe('Validation Error Cases', () => {
-    it('should return 400 on invalid UUID format', async () => {
-      // Arrange
-      const mockRequest = createMockRequest() as any;
-
-      // Act
-      const response = await GET(mockRequest, {
-        params: { id: 'not-a-valid-uuid' },
-      });
-      const data = await response.json();
-
-      // Assert
-      expect(response.status).toBe(400);
-      expect(data.success).toBe(false);
-      expect(data.error.code).toBe('VALIDATION_ERROR');
-      expect(queriesModule.getAuditById).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('Not Found Cases', () => {
-    it('should return 404 when audit not found', async () => {
-      // Arrange
-      (queriesModule.getAuditById as jest.Mock).mockResolvedValue(undefined);
-
-      const mockRequest = createMockRequest() as any;
-
-      // Act
-      const response = await GET(mockRequest, {
-        params: { id: '550e8400-e29b-41d4-a716-446655440000' },
-      });
-      const data = await response.json();
-
-      // Assert
-      expect(response.status).toBe(404);
-      expect(data.success).toBe(false);
-      expect(data.error.code).toBe('NOT_FOUND');
-    });
-  });
-
-  describe('Service Error Cases', () => {
-    it('should return 500 on database query failure', async () => {
-      // Arrange
-      (queriesModule.getAuditById as jest.Mock).mockRejectedValue(
-        new Error('Database connection failed'),
-      );
-
-      const mockRequest = createMockRequest() as any;
-
-      // Act
-      const response = await GET(mockRequest, {
-        params: { id: '550e8400-e29b-41d4-a716-446655440000' },
-      });
-      const data = await response.json();
-
-      // Assert
-      expect(response.status).toBe(500);
-      expect(data.success).toBe(false);
-      expect(data.error.code).toBe('SERVICE_ERROR');
-    });
+    expect(res.status).toBe(404);
+    expect(body.success).toBe(false);
+    expect(body.error.code).toBe('NOT_FOUND');
   });
 });

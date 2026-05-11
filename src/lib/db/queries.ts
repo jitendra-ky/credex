@@ -176,3 +176,51 @@ export async function getLeadsByIpInWindow(
 
   return leads;
 }
+
+/**
+ * Share an audit by generating and storing a share code
+ * Makes an audit publicly accessible via the share code
+ * 
+ * @param auditId - The UUID of the audit to share
+ * @param shareCode - The unique share code to assign
+ * @returns The updated audit record with share_code and is_shared=true
+ * @throws Error if audit not found or database update fails
+ */
+export async function shareAudit(auditId: string, shareCode: string): Promise<Audit> {
+  const db = getDb();
+
+  const [updated] = await db
+    .update(auditsTable)
+    .set({
+      share_code: shareCode,
+      is_shared: true,
+      shared_at: new Date(),
+      updated_at: new Date(),
+    })
+    .where(eq(auditsTable.id, auditId))
+    .returning();
+
+  if (!updated) {
+    throw new Error('Failed to share audit: audit not found');
+  }
+
+  return updated;
+}
+
+/**
+ * Fetch an audit record by share code (public access)
+ * 
+ * @param shareCode - The share code to look up
+ * @returns The audit record if found, undefined otherwise
+ * @throws Error if database query fails
+ */
+export async function getAuditByShareCode(shareCode: string): Promise<Audit | undefined> {
+  const db = getDb();
+
+  const [audit] = await db
+    .select()
+    .from(auditsTable)
+    .where(eq(auditsTable.share_code, shareCode));
+
+  return audit;
+}
