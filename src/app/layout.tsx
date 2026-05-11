@@ -1,9 +1,16 @@
 import type { Metadata } from 'next';
-import type { JSX } from 'react';
+import { Inter } from 'next/font/google';
+import './globals.css';
+
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+});
 
 export const metadata: Metadata = {
-  title: 'Credex',
-  description: 'Credex Application',
+  title: 'Credex — AI Spend Audit',
+  description: 'Stop overpaying for AI. Audit your stack in 60 seconds and discover hidden savings.',
 };
 
 interface RootLayoutProps {
@@ -12,8 +19,8 @@ interface RootLayoutProps {
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" className={inter.variable}>
+      <body className="font-sans antialiased">{children}</body>
     </html>
   );
 }
