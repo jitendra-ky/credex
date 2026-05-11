@@ -93,8 +93,8 @@ export async function listAudits(
  */
 export async function upsertLead(
   email: string,
-  company_name: string | null,
-  role: string | null,
+  company_name: string | null | undefined,
+  role: string | null | undefined,
   ip_address: string,
   audit_id?: string | null,
 ): Promise<Lead> {

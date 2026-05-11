@@ -13,7 +13,7 @@ export class EmailService {
    */
   async sendLeadConfirmation(
     email: string,
-    companyName?: string | null,
+    companyName: string | null | undefined = undefined,
   ): Promise<void> {
     try {
       // TODO: Integrate with Resend API
