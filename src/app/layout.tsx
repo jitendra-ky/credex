@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
-import type { JSX } from 'react';
+import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Credex',
-  description: 'Credex Application',
+  title: 'Credex | Audit AI Spend',
+  description: 'Find overspend in your AI stack and get a clear savings report.',
 };
 
 interface RootLayoutProps {

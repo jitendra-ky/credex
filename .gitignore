@@ -36,3 +36,5 @@ lerna-debug.log*
 
 # Local project files
 /assets-local
+
+tsconfig.tsbuildinfo
