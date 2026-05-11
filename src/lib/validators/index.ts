@@ -95,36 +95,67 @@ const baseToolConfigSchema = z.object({
 
 /**
  * Specific tool config schemas
+ * Note: number_of_seats must be positive when is_active is true, can be 0 when inactive
  */
 const cursorConfigSchema = baseToolConfigSchema.extend({
   current_plan: cursorPlanSchema,
-  number_of_seats: z.number().int().positive(),
+  number_of_seats: z.number().int().nonnegative(),
   billing_cycle: billingCycleSchema,
-});
+}).refine(
+  (data) => !data.is_active || data.number_of_seats > 0,
+  {
+    message: 'Number must be greater than 0',
+    path: ['number_of_seats'],
+  }
+);
 
 const claudeGUIConfigSchema = baseToolConfigSchema.extend({
   current_plan: claudePlanSchema,
-  number_of_seats: z.number().int().positive(),
+  number_of_seats: z.number().int().nonnegative(),
   billing_cycle: billingCycleSchema,
-});
+}).refine(
+  (data) => !data.is_active || data.number_of_seats > 0,
+  {
+    message: 'Number must be greater than 0',
+    path: ['number_of_seats'],
+  }
+);
 
 const chatGPTGUIConfigSchema = baseToolConfigSchema.extend({
   current_plan: chatGPTPlanSchema,
-  number_of_seats: z.number().int().positive(),
+  number_of_seats: z.number().int().nonnegative(),
   billing_cycle: billingCycleSchema,
-});
+}).refine(
+  (data) => !data.is_active || data.number_of_seats > 0,
+  {
+    message: 'Number must be greater than 0',
+    path: ['number_of_seats'],
+  }
+);
 
 const geminiConfigSchema = baseToolConfigSchema.extend({
   current_plan: geminiPlanSchema,
-  number_of_seats: z.number().int().positive(),
+  number_of_seats: z.number().int().nonnegative(),
   billing_cycle: billingCycleSchema,
-});
+}).refine(
+  (data) => !data.is_active || data.number_of_seats > 0,
+  {
+    message: 'Number must be greater than 0',
+    path: ['number_of_seats'],
+  }
+);
 
 const v0ConfigSchema = baseToolConfigSchema.extend({
   current_plan: v0PlanSchema,
-  number_of_seats: z.number().int().positive(),
+  number_of_seats: z.number().int().nonnegative(),
   has_vercel_pro_infrastructure_active: z.boolean(),
-});
+}).refine(
+  (data) => !data.is_active || data.number_of_seats > 0,
+  {
+    message: 'Number must be greater than 0',
+    path: ['number_of_seats'],
+  }
+);
 
 const anthropicAPIConfigSchema = baseToolConfigSchema.extend({
   primary_model_used: apiModelSchema,
