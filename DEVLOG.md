@@ -85,4 +85,33 @@
 - Build out the lead capture endpoint (POST /api/leads).
 - Do some end-to-end testing to make sure the whole flow works.
 
+## Day 5 - 2026-05-11
+**Hours worked:** 7
+
+**What I did:**
+- Knocked out the entire lead capture feature from start to finish. 15 commits in total — this was focused work.
+- Built the foundation first: created a `RateLimitError` class to handle 429 responses, then layered in Zod validation with `leadRequestSchema`. Added type definitions for `LeadRequest` and `LeadResponse`.
+- Implemented the lead services orchestration: rate limiting per IP, email notifications for leads, and a proper service layer that ties it all together. These are the pieces that actually do the work.
+- Wired up the `POST /api/leads` endpoint with automatic IP extraction from the request. It takes email and company info, validates it, checks rate limits, and fires off notifications.
+- Wrote solid test coverage: 9 unit tests for the LeadService and then API integration tests to make sure the endpoint works end-to-end.
+- Hit a few snags along the way with test environment setup — had to add a TextEncoder polyfill for Node.js because it wasn't available in the test environment. Also fixed some Jest mock syntax issues and had to correct the validator chain in a couple places.
+- Updated EmailService to properly log intent when sending lead confirmation emails. Made sure all the parameters could handle undefined values gracefully.
+- Added comprehensive documentation for the leads feature with the full API contract so anyone reading the code knows what's expected.
+- Fixed the CI workflow to not upload coverage reports (they were cluttering things up).
+- Merged the PR at the end of the day.
+
+**What I learned:**
+- Building a full feature end-to-end in one day is doable when you have a clear plan and start with the foundation (types → validation → services → endpoint → tests).
+- Test environment setup is more finicky than I expected — Node.js is missing some globals that browsers have, so you need to polyfill them.
+- Service layer orchestration makes it easy to test different scenarios without hitting the database or sending real emails every time.
+- Small, incremental commits help so much when you need to debug things. If tests fail after 15 commits, you can git bisect and find the culprit quickly.
+- Rate limiting should be done at the IP level for lead capture — prevents spam and abuse without blocking legitimate users.
+
+**Blockers / What I'm stuck on:**
+- None really. The lead capture feature is complete and merged.
+
+**Plan for tomorrow:**
+- Now that lead capture is done, I should focus on the Anthropic API integration for real audit summaries. This is the last piece that's holding back a complete end-to-end flow.
+- Then move on to any final polish: performance optimization, better error messages, maybe a simple dashboard to see the audits and leads that have come in.
+
 
