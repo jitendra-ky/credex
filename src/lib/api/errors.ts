@@ -68,6 +68,17 @@ export class ConflictError extends ApiError {
 }
 
 /**
+ * Rate limit error
+ * HTTP 429: Too many requests from this IP/user
+ */
+export class RateLimitError extends ApiError {
+  constructor(message: string = 'Too many requests', details?: unknown) {
+    super(429, message, 'RATE_LIMIT_ERROR', details);
+    this.name = 'RateLimitError';
+  }
+}
+
+/**
  * Type guard to check if error is an ApiError
  */
 export function isApiError(error: unknown): error is ApiError {

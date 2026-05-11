@@ -15,6 +15,13 @@
       "when": 1778426295138,
       "tag": "0001_warm_meltdown",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1778502365949,
+      "tag": "0002_brainy_bulldozer",
+      "breakpoints": true
     }
   ]
 }
