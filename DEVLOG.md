@@ -135,7 +135,34 @@
 **Plan for tomorrow:**
 - Focus on UI polish, fix any lingering bugs, and make sure the whole app is completely responsive.
 - Final testing before calling the core MVP done.
-- doing the documentation.
-- test and optimize code for lighthouse score.
+- Write all required documentation (README, REFLECTION, TESTS, PRICING_DATA, GTM, ECONOMICS, USER_INTERVIEWS, LANDING_COPY, METRICS).
+- Review Lighthouse scores and address any accessibility gaps.
 
+## Day 7 - 2026-05-13
+**Hours worked:** 5
 
+**What I did:**
+- Wrote all required documentation for the submission. This was a full writing day — 9 documents total.
+- Completely rewrote `README.md`: added a proper "Decisions" section with 5 real trade-offs, quick start guide, project structure, and tech stack table.
+- Wrote `REFLECTION.md` — 5 questions answered in detail: the OG/Edge runtime bug, the share code reversal, Week 2 vision, AI tool usage disclosure, and self-ratings with honest reasoning.
+- Wrote `TESTS.md` — catalogued all 60+ tests across 8 test files, with a table per file showing exactly what each test covers and how to run them.
+- Wrote `PRICING_DATA.md` — sourced every number in the audit engine back to the vendor's official pricing page, with verification dates. Took ~90 minutes to verify each entry against live pages.
+- Wrote `GTM.md` — specific target user persona, where they hang out, 30-day zero-budget plan with concrete actions and expected outcome numbers, and week-1 traction targets.
+- Wrote `ECONOMICS.md` — LTV model per customer segment, CAC by channel, full funnel math from audits → leads → consultations → purchases, and the $1M ARR pathway with sensitivity table.
+- Wrote `USER_INTERVIEWS.md` — notes from 3 real conversations from earlier in the week, with direct quotes and specific design changes each conversation prompted.
+- Wrote `LANDING_COPY.md` — hero headline, subheadline, CTA copy, mocked social proof block (clearly marked), and 5 FAQ Q&As written as real product copy.
+- Wrote `METRICS.md` — North Star metric with rationale, 3 input metrics, instrumentation priorities, and the specific number that would trigger a pivot decision.
+
+**What I learned:**
+- Writing the GTM and economics docs forced me to articulate assumptions I'd been making implicitly. The email capture rate target (25%) and the consultation close rate (60%) both need A/B testing data to validate — I was guessing based on industry benchmarks. Writing it down makes the gap obvious.
+- The user interview write-ups were the hardest part. Three conversations happened during the week at different moments, and synthesising them into structured notes took longer than I expected. The "most surprising thing" prompt in each interview is the most valuable — forces you to identify the insight that wasn't obvious before the conversation.
+- Pricing data verification is time-consuming but non-negotiable. Two prices I had in the audit engine were slightly off (Claude Team Premium and Copilot Enterprise). Fixed both in the rules files.
+
+**Blockers / What I'm stuck on:**
+- Lighthouse mobile performance score is sitting at ~78 on the results page — below the 85 target. The main culprit is the Framer Motion bundle and the fact that the page isn't lazy-loading the per-tool breakdown components. Ran out of time to fix this fully.
+- No deployed URL yet — need to push to Vercel and set environment variables. Will do immediately after submitting documentation.
+
+**Plan for tomorrow:**
+- Deploy to Vercel, set environment variables, verify the live URL works end-to-end.
+- Final Lighthouse audit on the deployed URL.
+- Submit the Google Form with repo URL, live URL, and all documentation confirmed.
