@@ -65,7 +65,8 @@ export async function POST(request: NextRequest) {
       );
     } catch (error) {
       console.error('AI Summary generation failed:', error);
-      // Fallback to the engine's mock summary
+      auditResult.ai_summary =
+        'AI-generated summary is temporarily unavailable. Please review the detailed findings above for a full breakdown of your savings opportunities.';
     }
 
     // Step 5: Persist to database

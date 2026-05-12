@@ -8,7 +8,7 @@ export class SummaryGenerationService {
   constructor() {
     const apiKey = process.env.GEMINI_API_KEY || '';
     this.genAI = new GoogleGenerativeAI(apiKey);
-    this.model = this.genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    this.model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
   }
 
   /**
@@ -17,19 +17,13 @@ export class SummaryGenerationService {
    */
   async generateSummary(request: AuditRequest, findings: AuditFinding[], monthlySavings: number): Promise<string> {
     if (!process.env.GEMINI_API_KEY) {
-      console.warn('GEMINI_API_KEY not found. Using fallback summary.');
-      return this.getFallbackSummary();
+      throw new Error('GEMINI_API_KEY is not configured');
     }
 
-    try {
-      const prompt = this.buildPrompt(request, findings, monthlySavings);
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      return response.text();
-    } catch (error) {
-      console.error('Failed to generate AI summary:', error);
-      return this.getFallbackSummary();
-    }
+    const prompt = this.buildPrompt(request, findings, monthlySavings);
+    const result = await this.model.generateContent(prompt);
+    const response = await result.response;
+    return response.text();
   }
 
   private buildPrompt(request: AuditRequest, findings: AuditFinding[], monthlySavings: number): string {
@@ -56,7 +50,4 @@ ${findingsList}
 Summary:`;
   }
 
-  private getFallbackSummary(): string {
-    return 'Based on the comprehensive audit of your current AI tool stack, we identified significant optimization opportunities across multiple categories. The analysis reveals inefficiencies in your current plan selections and potential cost redundancies. By implementing the recommended changes, your organization can achieve substantial monthly savings while maintaining or improving security posture and feature coverage. The audit flagged critical areas where plan downgrades, consolidation, or alternative solutions could provide immediate relief without compromising productivity.';
-  }
 }
