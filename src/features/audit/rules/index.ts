@@ -23,5 +23,10 @@ export { RegionalDataResidencyTaxRule } from './TypeIIIDefectRules';
 export { ChatbotRedundancyRule } from './TypeIVDefectRules';
 export { ExtremePowerUserSurchargeRule } from './TypeIVDefectRules';
 
+// Type V: GitHub Copilot Specific
+export { CopilotEnterpriseUpsellRule } from './TypeVDefectRules';
+export { IDEAIRedundancyRule } from './TypeVDefectRules';
+export { CopilotProPlusMultiSeatRule } from './TypeVDefectRules';
+
 // Base
 export { BaseAuditRule, type IAuditRule } from './BaseAuditRule';

@@ -31,6 +31,7 @@ describe('AuditRuleEngine', () => {
     },
     current_stack: {
       cursor: { is_active: false, current_monthly_spend_usd: 0 } as any,
+      github_copilot: { is_active: false, current_monthly_spend_usd: 0 } as any,
       claude_gui: { is_active: false, current_monthly_spend_usd: 0 } as any,
       chatgpt_gui: { is_active: false, current_monthly_spend_usd: 0 } as any,
       gemini: { is_active: false, current_monthly_spend_usd: 0 } as any,

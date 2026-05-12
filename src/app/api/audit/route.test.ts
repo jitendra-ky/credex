@@ -43,6 +43,13 @@ describe('POST /api/audit', () => {
             billing_cycle: 'monthly',
             current_monthly_spend_usd: 200,
           },
+          github_copilot: {
+            is_active: false,
+            current_plan: 'business',
+            number_of_seats: 1,
+            billing_cycle: 'monthly',
+            current_monthly_spend_usd: 0,
+          },
           claude_gui: {
             is_active: false,
             current_plan: 'free',
@@ -213,6 +220,13 @@ describe('POST /api/audit', () => {
             billing_cycle: 'monthly',
             current_monthly_spend_usd: 200,
           },
+          github_copilot: {
+            is_active: false,
+            current_plan: 'business',
+            number_of_seats: 1,
+            billing_cycle: 'monthly',
+            current_monthly_spend_usd: 0,
+          },
           claude_gui: {
             is_active: false,
             current_plan: 'free',
@@ -300,6 +314,13 @@ describe('POST /api/audit', () => {
             number_of_seats: 10,
             billing_cycle: 'monthly',
             current_monthly_spend_usd: 200,
+          },
+          github_copilot: {
+            is_active: false,
+            current_plan: 'business',
+            number_of_seats: 1,
+            billing_cycle: 'monthly',
+            current_monthly_spend_usd: 0,
           },
           claude_gui: {
             is_active: false,

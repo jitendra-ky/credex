@@ -98,7 +98,7 @@ export class ChatGPTBusinessMinimumRule extends BaseAuditRule {
 export class AnnualBillingArbitrageRule extends BaseAuditRule {
   readonly ruleId = 'RULE_1_3_ANNUAL_BILLING_ARBITRAGE';
 
-  private toolsWithAnnualDiscount = ['cursor', 'claude_gui', 'chatgpt_gui', 'v0_vercel'];
+  private toolsWithAnnualDiscount = ['cursor', 'github_copilot', 'claude_gui', 'chatgpt_gui', 'v0_vercel'];
 
   execute(request: AuditRequest): AuditFinding[] {
     const findings: AuditFinding[] = [];
