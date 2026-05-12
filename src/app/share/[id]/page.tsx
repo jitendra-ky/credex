@@ -20,7 +20,9 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
     'https://credex.rocks';
 
   const shareUrl = `${baseUrl}/share/${params.id}`;
-  const ogImageUrl = `${baseUrl}/api/og?id=${params.id}`;
+  // Pass savings data as query params so the /api/og edge route
+  // doesn't need a DB call (pg is incompatible with edge runtime).
+  const ogImageUrl = `${baseUrl}/api/og?monthly=${monthlySavings}&annual=${annualSavings}`;
 
   const title = `I found $${annualSavings.toLocaleString()}/yr in AI savings — audit yours free`;
   const description = `This team could save $${monthlySavings.toLocaleString()}/mo ($${annualSavings.toLocaleString()}/yr) by optimising their AI tool stack. Run your own free audit on Credex.`;

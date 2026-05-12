@@ -1,46 +1,34 @@
 /**
- * GET /api/og?id=<audit-uuid>
+ * GET /api/og?monthly=<number>&annual=<number>
  * Dynamic Open Graph image for shareable audit URLs.
  * Renders a 1200×630 branded card with savings summary.
+ *
  * Assignment §6: "Open Graph tags for clean link previews (Twitter card too)"
+ *
+ * Architecture note:
+ * - Runs on the Edge runtime so @vercel/og works correctly.
+ * - Savings data is passed as query params from generateMetadata in share/[id]/page.tsx.
+ *   This avoids importing pg (incompatible with edge runtime) and avoids a second DB hit.
  */
 
 import { ImageResponse } from 'next/og';
 import { NextRequest } from 'next/server';
-import { getAuditById } from '@/lib/db/queries';
-import type { AuditResult } from '@/features/audit/types/audit.types';
+
+export const runtime = 'edge';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const id = searchParams.get('id');
 
-  // Fallback values when no valid audit is found
-  let annualSavings = 0;
-  let monthlySavings = 0;
-  let toolCount = 0;
-  let found = false;
-
-  if (id) {
-    try {
-      const record = await getAuditById(id);
-      if (record && record.is_shared) {
-        const result = record.results_json as unknown as AuditResult;
-        annualSavings = result?.total_annual_savings_usd ?? 0;
-        monthlySavings = result?.total_monthly_savings_usd ?? 0;
-        toolCount = result?.findings?.length ?? 0;
-        found = true;
-      }
-    } catch {
-      // Use fallback values — don't crash the OG image
-    }
-  }
+  const monthly = Number(searchParams.get('monthly') ?? 0);
+  const annual = Number(searchParams.get('annual') ?? 0);
+  const found = annual > 0 || monthly > 0;
 
   const savingsLabel = found
-    ? `$${annualSavings.toLocaleString('en-US')}/yr in savings found`
+    ? `$${annual.toLocaleString('en-US')}/yr in AI savings found`
     : 'Audit your AI spend for free';
 
   const subLabel = found
-    ? `$${monthlySavings.toLocaleString('en-US')}/mo across ${toolCount} tool${toolCount !== 1 ? 's' : ''} — run your own audit`
+    ? `$${monthly.toLocaleString('en-US')}/mo in potential savings — run your own audit`
     : 'Cursor · Copilot · Claude · ChatGPT · and more';
 
   return new ImageResponse(
@@ -93,7 +81,14 @@ export async function GET(request: NextRequest) {
           >
             <span style={{ color: '#0f172a', fontSize: '20px', fontWeight: 900 }}>C</span>
           </div>
-          <span style={{ color: '#94a3b8', fontSize: '22px', fontWeight: 600, letterSpacing: '0.04em' }}>
+          <span
+            style={{
+              color: '#94a3b8',
+              fontSize: '22px',
+              fontWeight: 600,
+              letterSpacing: '0.04em',
+            }}
+          >
             CREDEX · AI SPEND AUDIT
           </span>
         </div>
