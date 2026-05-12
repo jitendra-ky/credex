@@ -36,8 +36,7 @@ export const auditTagEnum = pgEnum('audit_tag', [
  * - results_json: Serialized AuditResult (audit engine output)
  * - summary: AI-generated summary of audit findings
  * - tag: Categorization of audit result
- * - share_code: Unique code for generating shareable public links (nullable, only set when shared)
- * - is_shared: Boolean flag indicating if audit is publicly accessible via share_code
+ * - is_shared: Boolean flag indicating if audit is publicly accessible via its UUID
  * - shared_at: Timestamp when audit was made shareable
  * - created_at: Timestamp when audit was created
  * - updated_at: Timestamp of last modification
@@ -50,7 +49,7 @@ export const auditsTable = pgTable(
     results_json: jsonb('results_json').notNull(),
     summary: text('summary'),
     tag: auditTagEnum('tag').notNull(),
-    share_code: text('share_code').unique(),
+
     is_shared: boolean('is_shared').default(false).notNull(),
     shared_at: timestamp('shared_at', { withTimezone: true }),
     created_at: timestamp('created_at', { withTimezone: true })
@@ -61,7 +60,6 @@ export const auditsTable = pgTable(
       .notNull(),
   },
   (table) => ({
-    shareCodeIdx: index('audits_share_code_idx').on(table.share_code),
     isSharedIdx: index('audits_is_shared_idx').on(table.is_shared),
   }),
 );
