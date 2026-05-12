@@ -11,6 +11,7 @@ import { createAudit } from '@/lib/db/queries';
 import { successResponse, errorResponse } from '@/lib/api/response';
 import { ValidationError, ServiceError } from '@/lib/api/errors';
 import { AuditRequest } from '@/features/audit/types/audit.types';
+import { SummaryGenerationService } from '@/features/audit/services/SummaryGenerationService';
 
 /**
  * POST /api/audit
@@ -54,7 +55,21 @@ export async function POST(request: NextRequest) {
       throw new ServiceError('Audit execution failed', { details });
     }
 
-    // Step 4: Persist to database
+    // Step 4: Generate AI Summary
+    const summaryService = new SummaryGenerationService();
+    try {
+      auditResult.ai_summary = await summaryService.generateSummary(
+        validatedRequest,
+        auditResult.findings,
+        auditResult.total_monthly_savings_usd
+      );
+    } catch (error) {
+      console.error('AI Summary generation failed:', error);
+      auditResult.ai_summary =
+        'AI-generated summary is temporarily unavailable. Please review the detailed findings above for a full breakdown of your savings opportunities.';
+    }
+
+    // Step 5: Persist to database
     let persistedAudit;
     try {
       persistedAudit = await createAudit(validatedRequest, auditResult);
