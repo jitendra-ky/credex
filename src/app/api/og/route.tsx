@@ -10,8 +10,6 @@ import { NextRequest } from 'next/server';
 import { getAuditById } from '@/lib/db/queries';
 import type { AuditResult } from '@/features/audit/types/audit.types';
 
-export const runtime = 'edge';
-
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');
