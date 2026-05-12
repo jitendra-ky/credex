@@ -114,4 +114,28 @@
 - Now that lead capture is done, I should focus on the Anthropic API integration for real audit summaries. This is the last piece that's holding back a complete end-to-end flow.
 - Then move on to any final polish: performance optimization, better error messages, maybe a simple dashboard to see the audits and leads that have come in.
 
+## Day 6 - 2026-05-12
+**Hours worked:** 4
+
+**What I did:**
+- Built the frontend from scratch: configured Tailwind, created reusable UI components, and wired up the main audit flow.
+- Added GitHub Copilot support to the audit engine, including new "Type V" defect rules.
+- Refactored how audit sharing works. Scrapped the clunky share code generator and replaced it with a simple `is_shared` boolean flag. Much cleaner.
+- Finally swapped out the mock AI summary with the real deal. Integrated the Gemini API (2.0 Flash) to generate actual, personalized audit summaries.
+- Added dynamic Open Graph (OG) images so shared audits look great on social media. Had to fix a tricky edge runtime issue with the DB library along the way.
+
+**What I learned:**
+- Keeping things simple pays off. The share feature is so much easier to maintain now that it just uses a flag instead of generating unique codes.
+- Dynamic OG generation is awesome for marketing, but you have to be careful with Node vs Edge runtimes when using tools like `pg`.
+- Seeing the real AI summary generate for the first time was magical. It really ties the whole product together.
+
+**Blockers / What I'm stuck on:**
+- No major blockers right now! The app is feeling really solid end-to-end.
+
+**Plan for tomorrow:**
+- Focus on UI polish, fix any lingering bugs, and make sure the whole app is completely responsive.
+- Final testing before calling the core MVP done.
+- doing the documentation.
+- test and optimize code for lighthouse score.
+
 
