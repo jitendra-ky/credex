@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Request Validators
  * Single Responsibility: Define Zod schemas for request validation
  * Ensures type-safe request validation at API boundaries
@@ -13,6 +13,7 @@ import type {
   ChatGPTPlan,
   GeminiPlan,
   V0Plan,
+  GithubCopilotPlan,
   APIModel,
 } from '@/features/audit/types/audit.types';
 
@@ -72,6 +73,14 @@ const v0PlanSchema = z.enum([
   'free',
   'premium',
   'team',
+  'business',
+  'enterprise',
+]);
+
+const githubCopilotPlanSchema = z.enum([
+  'free',
+  'pro',
+  'pro_plus',
   'business',
   'enterprise',
 ]);
@@ -157,6 +166,18 @@ const v0ConfigSchema = baseToolConfigSchema.extend({
   }
 );
 
+const githubCopilotConfigSchema = baseToolConfigSchema.extend({
+  current_plan: githubCopilotPlanSchema,
+  number_of_seats: z.number().int().nonnegative(),
+  billing_cycle: billingCycleSchema,
+}).refine(
+  (data) => !data.is_active || data.number_of_seats > 0,
+  {
+    message: 'Number must be greater than 0',
+    path: ['number_of_seats'],
+  }
+);
+
 const anthropicAPIConfigSchema = baseToolConfigSchema.extend({
   primary_model_used: apiModelSchema,
   average_monthly_token_volume_millions: z.number().nonnegative(),
@@ -194,6 +215,7 @@ const globalContextSchema = z.object({
  */
 const currentStackSchema = z.object({
   cursor: cursorConfigSchema,
+  github_copilot: githubCopilotConfigSchema,
   claude_gui: claudeGUIConfigSchema,
   chatgpt_gui: chatGPTGUIConfigSchema,
   gemini: geminiConfigSchema,

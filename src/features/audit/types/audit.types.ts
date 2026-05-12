@@ -14,6 +14,7 @@ export type ClaudePlan = 'free' | 'pro' | 'max_5x' | 'max_20x' | 'team_standard'
 export type ChatGPTPlan = 'free' | 'go' | 'plus' | 'pro_100' | 'pro_200' | 'business' | 'enterprise';
 export type GeminiPlan = 'free' | 'plus' | 'pro' | 'ultra' | 'business' | 'enterprise_standard' | 'enterprise_plus';
 export type V0Plan = 'free' | 'premium' | 'team' | 'business' | 'enterprise';
+export type GithubCopilotPlan = 'free' | 'pro' | 'pro_plus' | 'business' | 'enterprise';
 
 export type APIModel = 'opus' | 'sonnet' | 'haiku' | 'gpt_5_5' | 'gpt_5_4' | 'gpt_5_4_mini';
 
@@ -70,6 +71,12 @@ export interface V0Config extends ToolConfig {
   has_vercel_pro_infrastructure_active: boolean;
 }
 
+export interface GithubCopilotConfig extends ToolConfig {
+  current_plan: GithubCopilotPlan;
+  number_of_seats: number;
+  billing_cycle: BillingCycle;
+}
+
 export interface AnthropicAPIConfig extends ToolConfig {
   primary_model_used: APIModel;
   average_monthly_token_volume_millions: number;
@@ -86,6 +93,7 @@ export interface OpenAIAPIConfig extends ToolConfig {
 
 export interface CurrentStack {
   cursor: CursorConfig;
+  github_copilot: GithubCopilotConfig;
   claude_gui: ClaudeGUIConfig;
   chatgpt_gui: ChatGPTGUIConfig;
   gemini: GeminiConfig;
