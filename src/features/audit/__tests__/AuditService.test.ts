@@ -25,6 +25,10 @@ describe('AuditService', () => {
         billing_cycle: 'monthly',
         current_monthly_spend_usd: 100,
       },
+      github_copilot: {
+        is_active: false,
+        current_monthly_spend_usd: 0,
+      } as any,
       claude_gui: {
         is_active: false,
         current_monthly_spend_usd: 0,
@@ -97,6 +101,7 @@ describe('AuditService', () => {
 
     // Deactivate all tools
     request.current_stack.cursor.is_active = false;
+    request.current_stack.github_copilot.is_active = false;
     request.current_stack.claude_gui.is_active = false;
     request.current_stack.chatgpt_gui.is_active = false;
     request.current_stack.gemini.is_active = false;

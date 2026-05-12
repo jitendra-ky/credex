@@ -36,6 +36,10 @@ describe('Audit Integration Tests', () => {
           billing_cycle: 'monthly',
           current_monthly_spend_usd: 400,
         },
+        github_copilot: {
+          is_active: false,
+          current_monthly_spend_usd: 0,
+        } as any,
         claude_gui: {
           is_active: true,
           current_plan: 'team_standard',
@@ -129,30 +133,13 @@ describe('Audit Integration Tests', () => {
           billing_cycle: 'annual', // Optimized
           current_monthly_spend_usd: 80, // Already discounted annual rate
         },
-        claude_gui: {
-          is_active: false,
-          current_monthly_spend_usd: 0,
-        } as any,
-        chatgpt_gui: {
-          is_active: false,
-          current_monthly_spend_usd: 0,
-        } as any,
-        gemini: {
-          is_active: false,
-          current_monthly_spend_usd: 0,
-        } as any,
-        v0_vercel: {
-          is_active: false,
-          current_monthly_spend_usd: 0,
-        } as any,
-        anthropic_api: {
-          is_active: false,
-          current_monthly_spend_usd: 0,
-        } as any,
-        openai_api: {
-          is_active: false,
-          current_monthly_spend_usd: 0,
-        } as any,
+        github_copilot: { is_active: false, current_monthly_spend_usd: 0 } as any,
+        claude_gui: { is_active: false, current_monthly_spend_usd: 0 } as any,
+        chatgpt_gui: { is_active: false, current_monthly_spend_usd: 0 } as any,
+        gemini: { is_active: false, current_monthly_spend_usd: 0 } as any,
+        v0_vercel: { is_active: false, current_monthly_spend_usd: 0 } as any,
+        anthropic_api: { is_active: false, current_monthly_spend_usd: 0 } as any,
+        openai_api: { is_active: false, current_monthly_spend_usd: 0 } as any,
       },
     };
 
@@ -182,10 +169,8 @@ describe('Audit Integration Tests', () => {
         },
       },
       current_stack: {
-        cursor: {
-          is_active: false,
-          current_monthly_spend_usd: 0,
-        } as any,
+        cursor: { is_active: false, current_monthly_spend_usd: 0 } as any,
+        github_copilot: { is_active: false, current_monthly_spend_usd: 0 } as any,
         claude_gui: {
           is_active: true,
           current_plan: 'pro',
@@ -207,18 +192,9 @@ describe('Audit Integration Tests', () => {
           billing_cycle: 'monthly',
           current_monthly_spend_usd: 400, // ~$20/user
         },
-        v0_vercel: {
-          is_active: false,
-          current_monthly_spend_usd: 0,
-        } as any,
-        anthropic_api: {
-          is_active: false,
-          current_monthly_spend_usd: 0,
-        } as any,
-        openai_api: {
-          is_active: false,
-          current_monthly_spend_usd: 0,
-        } as any,
+        v0_vercel: { is_active: false, current_monthly_spend_usd: 0 } as any,
+        anthropic_api: { is_active: false, current_monthly_spend_usd: 0 } as any,
+        openai_api: { is_active: false, current_monthly_spend_usd: 0 } as any,
       },
     };
 
@@ -259,6 +235,7 @@ describe('Audit Integration Tests', () => {
           billing_cycle: 'monthly',
           current_monthly_spend_usd: 4000, // $80/user for enterprise
         },
+        github_copilot: { is_active: false, current_monthly_spend_usd: 0 } as any,
         claude_gui: {
           is_active: false,
           current_monthly_spend_usd: 0,
@@ -316,26 +293,12 @@ describe('Audit Integration Tests', () => {
         },
       },
       current_stack: {
-        cursor: {
-          is_active: false,
-          current_monthly_spend_usd: 0,
-        } as any,
-        claude_gui: {
-          is_active: false,
-          current_monthly_spend_usd: 0,
-        } as any,
-        chatgpt_gui: {
-          is_active: false,
-          current_monthly_spend_usd: 0,
-        } as any,
-        gemini: {
-          is_active: false,
-          current_monthly_spend_usd: 0,
-        } as any,
-        v0_vercel: {
-          is_active: false,
-          current_monthly_spend_usd: 0,
-        } as any,
+        cursor: { is_active: false, current_monthly_spend_usd: 0 } as any,
+        github_copilot: { is_active: false, current_monthly_spend_usd: 0 } as any,
+        claude_gui: { is_active: false, current_monthly_spend_usd: 0 } as any,
+        chatgpt_gui: { is_active: false, current_monthly_spend_usd: 0 } as any,
+        gemini: { is_active: false, current_monthly_spend_usd: 0 } as any,
+        v0_vercel: { is_active: false, current_monthly_spend_usd: 0 } as any,
         anthropic_api: {
           is_active: true,
           primary_model_used: 'sonnet',
@@ -344,10 +307,7 @@ describe('Audit Integration Tests', () => {
           requires_us_data_residency: false,
           current_monthly_spend_usd: 1200,
         },
-        openai_api: {
-          is_active: false,
-          current_monthly_spend_usd: 0,
-        } as any,
+        openai_api: { is_active: false, current_monthly_spend_usd: 0 } as any,
       },
     };
 
@@ -385,6 +345,7 @@ describe('Audit Integration Tests', () => {
           billing_cycle: 'monthly',
           current_monthly_spend_usd: 100,
         },
+        github_copilot: { is_active: false, current_monthly_spend_usd: 0 } as any,
         claude_gui: { is_active: false, current_monthly_spend_usd: 0 } as any,
         chatgpt_gui: { is_active: false, current_monthly_spend_usd: 0 } as any,
         gemini: { is_active: false, current_monthly_spend_usd: 0 } as any,
