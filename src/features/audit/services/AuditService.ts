@@ -23,6 +23,10 @@ import {
   // Type IV
   ChatbotRedundancyRule,
   ExtremePowerUserSurchargeRule,
+  // Type V
+  CopilotEnterpriseUpsellRule,
+  IDEAIRedundancyRule,
+  CopilotProPlusMultiSeatRule,
 } from '../rules';
 
 export class AuditService {
@@ -47,6 +51,9 @@ export class AuditService {
       new RegionalDataResidencyTaxRule(),
       new ChatbotRedundancyRule(),
       new ExtremePowerUserSurchargeRule(),
+      new CopilotEnterpriseUpsellRule(),
+      new IDEAIRedundancyRule(),
+      new CopilotProPlusMultiSeatRule(),
     ]);
   }
 
@@ -83,6 +90,7 @@ export class AuditService {
     // Ensure at least one tool is active
     const hasActiveTools = [
       request.current_stack.cursor.is_active,
+      request.current_stack.github_copilot.is_active,
       request.current_stack.claude_gui.is_active,
       request.current_stack.chatgpt_gui.is_active,
       request.current_stack.gemini.is_active,
