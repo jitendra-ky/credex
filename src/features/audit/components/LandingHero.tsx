@@ -18,7 +18,7 @@ export function LandingHero({ onStart }: LandingHeroProps) {
         <span className="text-brand-DEFAULT">Audit your stack in 60 seconds.</span>
       </h1>
       <p className="text-xl text-muted-foreground mb-10 max-w-2xl">
-        Discover hidden savings in your team&apos;s AI subscriptions. We analyze your Cursor, Claude, ChatGPT, and API usage to find the optimal setup.
+        Discover hidden savings in your team&apos;s AI subscriptions. We analyze Cursor, GitHub Copilot, Claude, ChatGPT, Gemini, v0, and your Anthropic / OpenAI API spend to find the optimal setup.
       </p>
       <Button size="lg" onClick={onStart} className="rounded-full text-lg px-8 h-14 bg-deep-navy hover:bg-navy-light text-white transition-all shadow-lg hover:shadow-xl group">
         Start Free Audit
