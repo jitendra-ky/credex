@@ -11,14 +11,44 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
   if (!auditRecord || !auditRecord.is_shared) return { title: 'Audit Not Found' };
 
   const auditResult = auditRecord.results_json as unknown as AuditResult;
-  const savings = auditResult?.total_annual_savings_usd || 0;
-  
+  const monthlySavings = auditResult?.total_monthly_savings_usd || 0;
+  const annualSavings = auditResult?.total_annual_savings_usd || 0;
+
+  const baseUrl =
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.NEXTAUTH_URL ||
+    'https://credex.rocks';
+
+  const shareUrl = `${baseUrl}/share/${params.id}`;
+  const ogImageUrl = `${baseUrl}/api/og?id=${params.id}`;
+
+  const title = `I found $${annualSavings.toLocaleString()}/yr in AI savings — audit yours free`;
+  const description = `This team could save $${monthlySavings.toLocaleString()}/mo ($${annualSavings.toLocaleString()}/yr) by optimising their AI tool stack. Run your own free audit on Credex.`;
+
   return {
-    title: `AI Spend Audit — $${savings} in potential savings`,
-    description: "I just audited my team's AI spend and found massive savings. Check it out.",
+    title,
+    description,
+    alternates: { canonical: shareUrl },
     openGraph: {
-      title: "I'm overspending on AI. Check your stack here.",
-      description: `Potential savings: $${savings}/year. Audit your AI tools for free.`,
+      type: 'article',
+      url: shareUrl,
+      title,
+      description,
+      siteName: 'Credex — AI Spend Audit',
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: `AI spend audit — $${annualSavings.toLocaleString()} in annual savings discovered`,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [ogImageUrl],
     },
   };
 }
