@@ -8,7 +8,7 @@ import type { AuditResult } from '@/features/audit/types/audit.types';
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
   const auditRecord = await getAuditById(params.id).catch(() => null);
-  if (!auditRecord) return { title: 'Audit Not Found' };
+  if (!auditRecord || !auditRecord.is_shared) return { title: 'Audit Not Found' };
 
   const auditResult = auditRecord.results_json as unknown as AuditResult;
   const savings = auditResult?.total_annual_savings_usd || 0;
@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
 export default async function PublicSharePage({ params }: { params: { id: string } }) {
   try {
     const auditRecord = await getAuditById(params.id);
-    if (!auditRecord) return notFound();
+    if (!auditRecord || !auditRecord.is_shared) return notFound();
 
     const auditResult = auditRecord.results_json as unknown as AuditResult;
 
