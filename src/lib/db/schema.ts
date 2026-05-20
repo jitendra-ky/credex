@@ -17,6 +17,16 @@ import {
 } from 'drizzle-orm/pg-core';
 
 /**
+ * Notification status enum
+ * Tracks the delivery state of a re-audit notification email
+ */
+export const notificationStatusEnum = pgEnum('notification_status', [
+  'pending',
+  'sent',
+  'failed',
+]);
+
+/**
  * Audit tag enum
  * Categories for audit severity/result classification
  */
@@ -116,3 +126,96 @@ export const leadsTable = pgTable(
  */
 export type Lead = typeof leadsTable.$inferSelect;
 export type NewLead = typeof leadsTable.$inferInsert;
+
+// ============================================================
+// ROUND 2 — Re-audit on Pricing Change
+// ============================================================
+
+/**
+ * Lead Audits Table
+ * One-to-many relationship between leads and audits.
+ * Solves the limitation that leadsTable.email is UNIQUE (one row per email),
+ * which means a single lead can only reference one audit_id there.
+ * This table tracks every audit ever run for a lead, across all engine versions.
+ *
+ * Columns:
+ * - id: Unique identifier (UUID)
+ * - lead_id: Reference to leadsTable.id (the owner of this audit)
+ * - audit_id: Reference to auditsTable.id (this version's audit result)
+ * - previous_audit_id: Reference to auditsTable.id of the prior version (for diff view; null on first audit)
+ * - engine_version: The version string of the audit rule engine that produced this audit (e.g. "1.0.0")
+ * - is_stale: True when a newer engine version exists and this audit has not been re-run yet
+ * - created_at: Timestamp when this audit version was stored
+ */
+export const leadAuditsTable = pgTable(
+  'lead_audits',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    lead_id: uuid('lead_id').notNull(),
+    audit_id: uuid('audit_id').notNull(),
+    previous_audit_id: uuid('previous_audit_id'),
+    engine_version: text('engine_version').notNull(),
+    is_stale: boolean('is_stale').default(false).notNull(),
+    created_at: timestamp('created_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    leadIdIdx: index('lead_audits_lead_id_idx').on(table.lead_id),
+    auditIdIdx: index('lead_audits_audit_id_idx').on(table.audit_id),
+    isStaleIdx: index('lead_audits_is_stale_idx').on(table.is_stale),
+    // One entry per lead per engine version — prevents duplicate rows on re-run
+    leadVersionUnique: uniqueIndex('lead_audits_lead_version_unique').on(
+      table.lead_id,
+      table.engine_version,
+    ),
+  }),
+);
+
+/**
+ * Type definitions for lead_audits table
+ */
+export type LeadAudit = typeof leadAuditsTable.$inferSelect;
+export type NewLeadAudit = typeof leadAuditsTable.$inferInsert;
+
+/**
+ * Reaudit Notifications Table
+ * Tracks which re-audit notification emails have been sent, to whom, and for which engine version.
+ * Ensures one consolidated email per lead per engine version change (no spam).
+ *
+ * Columns:
+ * - id: Unique identifier (UUID)
+ * - lead_id: Reference to leadsTable.id (recipient)
+ * - engine_version: The new engine version that triggered this notification
+ * - status: Delivery state — pending / sent / failed
+ * - sent_at: Timestamp when the email was successfully dispatched (null until sent)
+ * - created_at: Timestamp when this notification record was created
+ */
+export const reauditNotificationsTable = pgTable(
+  'reaudit_notifications',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    lead_id: uuid('lead_id').notNull(),
+    engine_version: text('engine_version').notNull(),
+    status: notificationStatusEnum('status').default('pending').notNull(),
+    sent_at: timestamp('sent_at', { withTimezone: true }),
+    created_at: timestamp('created_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    leadIdIdx: index('reaudit_notifications_lead_id_idx').on(table.lead_id),
+    statusIdx: index('reaudit_notifications_status_idx').on(table.status),
+    // One notification per lead per engine version — dedup guard
+    leadVersionUnique: uniqueIndex('reaudit_notifications_lead_version_unique').on(
+      table.lead_id,
+      table.engine_version,
+    ),
+  }),
+);
+
+/**
+ * Type definitions for reaudit_notifications table
+ */
+export type ReauditNotification = typeof reauditNotificationsTable.$inferSelect;
+export type NewReauditNotification = typeof reauditNotificationsTable.$inferInsert;
