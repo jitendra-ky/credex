@@ -85,3 +85,25 @@ If `leadsTable` already links email → audit, why have `stored_audits` at all? 
 `lead_audits`: proper one-to-many join (lead_id → audit_id), tracks engine_version, is_stale, previous_audit_id for diff view.
 
 `reaudit_notifications`: one row per user per engine version change, prevents duplicate emails.
+
+## 2026-05-21 14:00 — Lead Capture: OTP Email Verification
+
+**Backend:**
+- `email_verifications` table (10-min OTP expiry, 5-min send cooldown, 3 max attempts)
+- `OtpService`: `sendOtp(email)` + `verifyOtp(email, code)` state machine
+- `EmailService`: strategy pattern (MockEmailProvider default, ResendEmailProvider for production)
+- `POST /api/leads/send-otp` + `POST /api/leads/verify-otp` endpoints
+- 5 error classes + 2 Zod schemas
+
+**Frontend:**
+- 3-step `LeadCaptureModal` (details → OTP → success)
+- 6-digit OTP input with paste support, countdown timer, error messages
+- `localStorage` flag prevents re-showing after capture
+- Fixed modal import bug in `page.tsx`
+
+## 2026-05-21 16:30 - setup reset email sending service
+
+- As sending email is a valuable part of round 2 so I send a good amount of time setting of a reach email sencing service.
+- a Mock email sending service was setup in round 1.
+- I choose to use "resend.com" email sending service due to two main reason it is free and easy to implement.
+- setup my own gmail for sending email too look profession i.e. (credex@jitendraky.tech)

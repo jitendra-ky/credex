@@ -14,6 +14,7 @@ import {
   index,
   uniqueIndex,
   boolean,
+  integer,
 } from 'drizzle-orm/pg-core';
 
 /**
@@ -219,3 +220,52 @@ export const reauditNotificationsTable = pgTable(
  */
 export type ReauditNotification = typeof reauditNotificationsTable.$inferSelect;
 export type NewReauditNotification = typeof reauditNotificationsTable.$inferInsert;
+
+// ============================================================
+// LEAD CAPTURE — OTP Email Verification
+// ============================================================
+
+/**
+ * Email Verifications Table
+ * Stores short-lived OTP codes sent to users during lead capture.
+ * One active row per email at a time — previous rows are deleted before a new
+ * OTP is issued so there is never any ambiguity on verify.
+ *
+ * Columns:
+ * - id:           Unique identifier (UUID)
+ * - email:        The email address the OTP was sent to
+ * - otp_code:     6-digit numeric OTP (stored as text)
+ * - expires_at:   Timestamp when the OTP becomes invalid (created_at + 10 min)
+ * - last_sent_at: Timestamp of the most recent send — enforces 5-min per-email cooldown
+ * - attempts:     Number of wrong verification attempts (max 3 before lockout)
+ * - verified_at:  Set when the user enters the correct code; null until then
+ * - created_at:   Timestamp when this row was created
+ */
+export const emailVerificationsTable = pgTable(
+  'email_verifications',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    email: text('email').notNull(),
+    otp_code: text('otp_code').notNull(),
+    expires_at: timestamp('expires_at', { withTimezone: true }).notNull(),
+    last_sent_at: timestamp('last_sent_at', { withTimezone: true }).notNull(),
+    attempts: integer('attempts').default(0).notNull(),
+    verified_at: timestamp('verified_at', { withTimezone: true }),
+    created_at: timestamp('created_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    emailIdx: index('email_verifications_email_idx').on(table.email),
+    emailPendingIdx: index('email_verifications_email_pending_idx').on(
+      table.email,
+      table.verified_at,
+    ),
+  }),
+);
+
+/**
+ * Type definitions for email_verifications table
+ */
+export type EmailVerification = typeof emailVerificationsTable.$inferSelect;
+export type NewEmailVerification = typeof emailVerificationsTable.$inferInsert;

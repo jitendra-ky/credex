@@ -7,7 +7,7 @@ import { MultiStepForm } from '@/features/audit/components/MultiStepForm';
 import { ProcessingState } from '@/features/audit/components/ProcessingState';
 import { AuditDashboard } from '@/features/audit/components/AuditDashboard';
 import { ShareAudit } from '@/features/audit/components/ShareAudit';
-import { LeadCaptureModal } from '@/features/audit/components/LeadCaptureModal';
+import { LeadCaptureModal } from '@/features/leads/components/LeadCaptureModal';
 import { ValidatedAuditRequest } from '@/lib/validators';
 
 type AppState = 'landing' | 'form' | 'processing' | 'results' | 'error';
@@ -46,8 +46,12 @@ export default function Home() {
       if (result.success && result.data) {
         setAuditResults(result.data);
         setAppState('results');
-        // Show lead modal after 4 seconds
-        setTimeout(() => setShowLeadModal(true), 4000);
+        // Show lead modal after 4 seconds — only if user hasn't already submitted
+        const alreadyCaptured = typeof window !== 'undefined'
+          && localStorage.getItem('credex_lead_captured');
+        if (!alreadyCaptured) {
+          setTimeout(() => setShowLeadModal(true), 4000);
+        }
       } else {
         const errMsg = result.error?.message || 'Validation failed. Please check your inputs.';
         setErrorMessage(errMsg);
