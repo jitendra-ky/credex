@@ -100,3 +100,10 @@ If `leadsTable` already links email → audit, why have `stored_audits` at all? 
 - 6-digit OTP input with paste support, countdown timer, error messages
 - `localStorage` flag prevents re-showing after capture
 - Fixed modal import bug in `page.tsx`
+
+## 2026-05-21 16:30 - setup reset email sending service
+
+- As sending email is a valuable part of round 2 so I send a good amount of time setting of a reach email sencing service.
+- a Mock email sending service was setup in round 1.
+- I choose to use "resend.com" email sending service due to two main reason it is free and easy to implement.
+- setup my own gmail for sending email too look profession i.e. (credex@jitendraky.tech)

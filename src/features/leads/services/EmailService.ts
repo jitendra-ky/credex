@@ -10,6 +10,8 @@
  * No code changes required.
  */
 
+import { Resend } from 'resend';
+
 // ── Provider interface ────────────────────────────────────────────────────────
 
 interface IEmailProvider {
@@ -51,7 +53,8 @@ class MockEmailProvider implements IEmailProvider {
 
 class ResendEmailProvider implements IEmailProvider {
   private apiKey: string;
-  private fromAddress: string = 'noreply@credex.ai';
+  private fromAddress: string = 'credex@jitendraky.tech';
+  private resend: Resend;
 
   constructor() {
     const key = process.env.RESEND_API_KEY;
@@ -61,65 +64,56 @@ class ResendEmailProvider implements IEmailProvider {
       );
     }
     this.apiKey = key;
+    this.resend = new Resend(this.apiKey);
   }
 
   async sendOtp(email: string, otpCode: string): Promise<void> {
-    await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${this.apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: this.fromAddress,
-        to: email,
-        subject: `Your Credex verification code: ${otpCode}`,
-        html: `
-          <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px">
-            <h2 style="color:#0f172a;margin-bottom:8px">Your verification code</h2>
-            <p style="color:#64748b;margin-bottom:24px">
-              Enter this code in Credex to complete your email verification.
-              It expires in <strong>10 minutes</strong>.
-            </p>
-            <div style="background:#f1f5f9;border-radius:12px;padding:24px;text-align:center;
-                        font-size:36px;font-weight:700;letter-spacing:12px;color:#0f172a">
-              ${otpCode}
-            </div>
-            <p style="color:#94a3b8;font-size:13px;margin-top:24px">
-              If you didn't request this, you can safely ignore this email.
-            </p>
+    await this.resend.emails.send({
+      from: this.fromAddress,
+      to: email,
+      subject: `Your Credex verification code: ${otpCode}`,
+      text: `Your Credex verification code is ${otpCode}. It expires in 10 minutes.`,
+      html: `
+        <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px">
+          <h2 style="color:#0f172a;margin-bottom:8px">Your verification code</h2>
+          <p style="color:#64748b;margin-bottom:24px">
+            Enter this code in Credex to complete your email verification.
+            It expires in <strong>10 minutes</strong>.
+          </p>
+          <div style="background:#f1f5f9;border-radius:12px;padding:24px;text-align:center;
+                      font-size:36px;font-weight:700;letter-spacing:12px;color:#0f172a">
+            ${otpCode}
           </div>
-        `,
-      }),
+          <p style="color:#94a3b8;font-size:13px;margin-top:24px">
+            If you didn't request this, you can safely ignore this email.
+          </p>
+        </div>
+      `,
     });
   }
 
   async sendConfirmation(email: string, companyName?: string | null): Promise<void> {
-    await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${this.apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: this.fromAddress,
-        to: email,
-        subject: "You're on the list — Credex",
-        html: `
-          <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px">
-            <h2 style="color:#0f172a;margin-bottom:8px">
-              Thanks${companyName ? `, ${companyName}` : ''}!
-            </h2>
-            <p style="color:#64748b">
-              Our team will review your AI tool audit and reach out within <strong>24 hours</strong>
-              with personalised recommendations to help you secure those savings.
-            </p>
-            <p style="color:#94a3b8;font-size:13px;margin-top:24px">
-              — The Credex team
-            </p>
-          </div>
-        `,
-      }),
+    await this.resend.emails.send({
+      from: this.fromAddress,
+      to: email,
+      subject: "You're on the list — Credex",
+      text: companyName
+        ? `Thanks, ${companyName}! Our team will review your AI tool audit and reach out within 24 hours.`
+        : 'Thanks! Our team will review your AI tool audit and reach out within 24 hours.',
+      html: `
+        <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px">
+          <h2 style="color:#0f172a;margin-bottom:8px">
+            Thanks${companyName ? `, ${companyName}` : ''}!
+          </h2>
+          <p style="color:#64748b">
+            Our team will review your AI tool audit and reach out within <strong>24 hours</strong>
+            with personalised recommendations to help you secure those savings.
+          </p>
+          <p style="color:#94a3b8;font-size:13px;margin-top:24px">
+            — The Credex team
+          </p>
+        </div>
+      `,
     });
   }
 }
