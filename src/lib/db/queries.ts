@@ -5,8 +5,18 @@
  */
 
 import { getDb } from './client';
-import { auditsTable, leadsTable, type NewAudit, type Audit, type NewLead, type Lead } from './schema';
-import { eq, and, gte } from 'drizzle-orm';
+import {
+  auditsTable,
+  leadsTable,
+  emailVerificationsTable,
+  type NewAudit,
+  type Audit,
+  type NewLead,
+  type Lead,
+  type NewEmailVerification,
+  type EmailVerification,
+} from './schema';
+import { eq, and, gte, isNull, sql } from 'drizzle-orm';
 import { AuditRequest, AuditResult, AuditTag } from '@/features/audit/types/audit.types';
 
 /**
@@ -180,7 +190,7 @@ export async function getLeadsByIpInWindow(
 /**
  * Share an audit by marking it as publicly accessible
  * Makes an audit viewable via its UUID at /share/{id}
- * 
+ *
  * @param auditId - The UUID of the audit to share
  * @returns The updated audit record with is_shared=true
  * @throws Error if audit not found or database update fails
@@ -203,4 +213,103 @@ export async function shareAudit(auditId: string): Promise<Audit> {
   }
 
   return updated;
+}
+
+// ============================================================
+// OTP / Email Verification Queries
+// ============================================================
+
+/**
+ * Delete all verification rows for an email (verified or not).
+ * Called before creating a fresh OTP — ensures one active row per email.
+ * @param email - The email address to clear
+ */
+export async function deleteVerificationsForEmail(email: string): Promise<void> {
+  const db = getDb();
+  await db
+    .delete(emailVerificationsTable)
+    .where(eq(emailVerificationsTable.email, email));
+}
+
+/**
+ * Insert a new OTP verification row.
+ * @param email - Recipient email address
+ * @param otpCode - 6-digit numeric string
+ * @param expiresAt - When the OTP becomes invalid
+ * @returns The created EmailVerification record
+ */
+export async function createEmailVerification(
+  email: string,
+  otpCode: string,
+  expiresAt: Date,
+): Promise<EmailVerification> {
+  const db = getDb();
+  const now = new Date();
+
+  const newVerification: NewEmailVerification = {
+    email,
+    otp_code: otpCode,
+    expires_at: expiresAt,
+    last_sent_at: now,
+  };
+
+  const [created] = await db
+    .insert(emailVerificationsTable)
+    .values(newVerification)
+    .returning();
+
+  if (!created) {
+    throw new Error('Failed to create email verification record');
+  }
+
+  return created;
+}
+
+/**
+ * Fetch the latest unverified OTP row for an email.
+ * Returns undefined if no pending verification exists.
+ * @param email - The email address to look up
+ */
+export async function getLatestVerificationByEmail(
+  email: string,
+): Promise<EmailVerification | undefined> {
+  const db = getDb();
+
+  const [verification] = await db
+    .select()
+    .from(emailVerificationsTable)
+    .where(
+      and(
+        eq(emailVerificationsTable.email, email),
+        isNull(emailVerificationsTable.verified_at),
+      ),
+    )
+    .orderBy(emailVerificationsTable.created_at)
+    .limit(1);
+
+  return verification;
+}
+
+/**
+ * Increment the wrong-attempt counter on a verification row.
+ * @param id - UUID of the email_verifications row
+ */
+export async function incrementVerificationAttempts(id: string): Promise<void> {
+  const db = getDb();
+  await db
+    .update(emailVerificationsTable)
+    .set({ attempts: sql`${emailVerificationsTable.attempts} + 1` })
+    .where(eq(emailVerificationsTable.id, id));
+}
+
+/**
+ * Mark a verification row as successfully completed.
+ * @param id - UUID of the email_verifications row
+ */
+export async function markVerificationComplete(id: string): Promise<void> {
+  const db = getDb();
+  await db
+    .update(emailVerificationsTable)
+    .set({ verified_at: new Date() })
+    .where(eq(emailVerificationsTable.id, id));
 }
