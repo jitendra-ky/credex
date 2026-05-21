@@ -66,7 +66,7 @@ export class AuditRuleEngine {
     if (monthlySavings > 500) {
       return 'high-savings';
     }
-    if (monthlySavings > 100) { // change here to trigger all audit result change
+    if (monthlySavings > 100) { // change here to trigger all audit result change 100 to 0 this will almost affect all the audit result.
       return 'medium';
     }
     return 'optimal';

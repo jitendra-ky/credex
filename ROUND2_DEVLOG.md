@@ -150,4 +150,34 @@ Caught an architectural issue after review: I was writing to `lead_audits` insid
 - `lead_audits` = written exclusively by `scripts/run-reaudit.ts` when an engine version bump produces a changed result.
 - The script detects staleness by querying `leadsTable` for leads that have no `lead_audits` row for the current version yet (NOT EXISTS pattern), not by reading from `lead_audits` directly.
 
-This keeps `lead_audits` as a pure re-audit history table and `leadsTable` behavior completely unchanged.
+This keeps `lead_audits` as a pure re-audit history table and `leadsTable` behavior completely unchanged.
+
+## 2026-05-21 19:30 — Diff view complete and verified
+
+`AuditDiffView.tsx` is done. Reviewed the full rendering path: `page.tsx` reads `?rerun=true`, calls `getNewAuditByPreviousAuditId(oldAuditId)`, fetches both audit records, derives engine versions, passes all four props into `AuditDiffView`. The component covers all four row states (changed / new / removed / unchanged), collapses unchanged rows with a chevron, and shows the total annual savings delta as the headline. TypeScript is clean.
+
+One edge case handled: if the re-audit script hasn't run yet when the user clicks the email link (race condition — they click very fast, or the GH Actions job is slow), the page shows the original audit with a "Pricing Update Being Processed" amber banner instead of 404-ing. That's a much better UX than a blank error.
+
+## 2026-05-21 20:00 — Gap analysis: email content is thin
+
+Re-read the Round 2 spec carefully. Realized the notification email only shows a savings delta number and audit tag — the spec explicitly requires "what changed (which tools, which prices)." The diff view covers this on the re-run page, but the email itself doesn't name the tools.
+
+Decision: enrich the email. The `run-reaudit.ts` script already has `oldResult.findings` and `newResult.findings` in scope. Plan: compute changed tool names in the script, pass them into `EmailService.sendReauditNotification()` as an additional `changedTools: string[]` argument, render as a bullet list in the HTML email.
+
+Risk: this touches the `IEmailProvider` interface, both `MockEmailProvider` and `ResendEmailProvider`, the public `EmailService` facade, and the call site in `run-reaudit.ts`. Need to be careful not to break OTP or confirmation email paths — they don't use `sendReauditNotification()` so the interface change is additive only.
+
+## 2026-05-21 20:30 — Email enrichment shipped
+
+Updated `EmailService.ts`: added `changedTools: string[]` as a fourth parameter to `sendReauditNotification()` on the interface, both providers, and the facade. Mock provider logs the tool list. Resend provider renders an `<ul>` in the HTML body showing each changed tool name. Ran `npx tsc --noEmit` — zero errors.
+
+Updated `run-reaudit.ts`: added `computeChangedTools(oldResult, newResult)` helper that diffs the findings arrays by `tool_name` (presence, absence, and savings change ≥ $1/mo threshold) and returns a display-ready string array. Passed the result into `emailService.sendReauditNotification()`. All other script logic untouched.
+
+## 2026-05-21 21:00 — Writing submission documents
+
+Wrote `ROUND2_PR.md` (~700 words). Structured exactly as spec requires: What this PR does / Why / How it works (with ASCII data-flow diagram) / What I cut (5 bullets with honest reasoning) / How to test it manually (two options: GH Actions path and direct script path) / What's tested.
+
+Wrote `ROUND2_REFLECTION.md`. Three questions answered at ~150 words each. Made the answers specific — named the actual trade-off (thin email vs. rich diff view), named the actual first thing I'd fix (per-tool email breakdown), named the actual Round 1 decision that caused friction (unique audit_id on leadsTable).
+
+## 2026-05-21 21:15 — Final check
+
+All four required features working. Three required files at repo root: `ROUND2_PR.md`, `ROUND2_DEVLOG.md`, `ROUND2_REFLECTION.md`. Branch is `round-2-reaudit`. Commit history is within the 36h window with conventional commit messages. Done.
