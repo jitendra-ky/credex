@@ -489,3 +489,33 @@ export async function updateNotificationStatus(
     );
 }
 
+/**
+ * Diff View — Reverse lookup.
+ *
+ * When the user clicks the re-run link in their notification email they arrive at
+ * `/audit/[oldAuditId]?rerun=true`. We need to find the NEW audit that was produced
+ * for this lead by the re-audit script.
+ *
+ * The re-audit script always writes a new `lead_audits` row with:
+ *   `previous_audit_id = <the old audit id>`
+ *
+ * So we query: SELECT * FROM lead_audits WHERE previous_audit_id = oldAuditId LIMIT 1
+ *
+ * @param oldAuditId - UUID of the audit the user originally received
+ * @returns The new lead_audits row (which contains the new audit_id), or undefined if
+ *          the re-audit hasn't run yet for this lead
+ */
+export async function getNewAuditByPreviousAuditId(
+  oldAuditId: string,
+): Promise<LeadAudit | undefined> {
+  const db = getDb();
+
+  const [row] = await db
+    .select()
+    .from(leadAuditsTable)
+    .where(eq(leadAuditsTable.previous_audit_id, oldAuditId))
+    .orderBy(desc(leadAuditsTable.created_at))
+    .limit(1);
+
+  return row;
+}
