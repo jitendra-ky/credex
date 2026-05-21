@@ -1,0 +1,36 @@
+name: Re-audit on Engine Version Change
+
+# Trigger: only when the audit engine version file changes on main.
+# This is the single source of truth — bumping AUDIT_ENGINE_VERSION here
+# is what kicks off the downstream re-audit of all stored lead audits.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/features/audit/engine/version.ts'
+
+jobs:
+  reaudit:
+    name: Re-run stale audits and notify leads
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run re-audit script
+        run: npx tsx scripts/run-reaudit.ts
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          EMAIL_PROVIDER: resend
+          NEXT_PUBLIC_BASE_URL: ${{ secrets.NEXT_PUBLIC_BASE_URL }}
