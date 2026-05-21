@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> **Note for reviewers:** The re-audit pipeline is triggered by pushing to `main`, which requires write access to this repo. If you don't have it, here's an alternative: submit an audit on the live site and complete the OTP verification so you're registered as a lead — then let me know. I'll change a pricing rule and trigger the re-audit script on my end. You'll receive the notification email directly in your inbox and can click through to the diff view to verify the full end-to-end flow yourself. I mentioned in the `ROUND2_DEVLOG.md` why I use this method.
+
 ## What this PR does
 
 Adds a full "re-audit on pricing change" system on top of the Round 1 audit tool. Every lead who submits their AI stack is now tracked in the database across engine versions. When the audit rule engine is updated (pricing changes, new plans, revised logic), the system automatically detects every lead whose result would change, re-runs their audit, persists the new result, and sends them a single consolidated notification email with a one-click link to view an interactive diff of old vs. new recommendations.
