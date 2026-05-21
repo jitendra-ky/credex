@@ -6,5 +6,15 @@
 export { LeadService } from './services/LeadService';
 export { RateLimitService } from './services/RateLimitService';
 export { EmailService } from './services/EmailService';
+export { OtpService } from './services/OtpService';
 
-export type { LeadRequest, LeadResponse, Lead } from './types';
+export type {
+  LeadRequest,
+  LeadResponse,
+  Lead,
+  EmailVerification,
+  SendOtpResponse,
+  VerifyOtpResponse,
+  OtpInvalidDetails,
+  OtpCooldownDetails,
+} from './types';

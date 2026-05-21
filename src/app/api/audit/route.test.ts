@@ -6,9 +6,11 @@ import { POST } from './route';
 import { AuditService } from '@/features/audit/services/AuditService';
 import * as queriesModule from '@/lib/db/queries';
 import { AuditResult, AuditRequest } from '@/features/audit/types/audit.types';
+import { SummaryGenerationService } from '@/features/audit/services/SummaryGenerationService';
 
 // Mock modules
 jest.mock('@/features/audit/services/AuditService');
+jest.mock('@/features/audit/services/SummaryGenerationService');
 jest.mock('@/lib/db/queries');
 
 // Mock NextRequest
@@ -133,6 +135,13 @@ describe('POST /api/audit', () => {
       (AuditService as jest.MockedClass<typeof AuditService>).mockImplementation(
         () => ({
           executeAudit: jest.fn().mockResolvedValue(mockAuditResult),
+        } as any),
+      );
+
+      // Mock SummaryGenerationService
+      (SummaryGenerationService as jest.MockedClass<typeof SummaryGenerationService>).mockImplementation(
+        () => ({
+          generateSummary: jest.fn().mockResolvedValue('Mock AI summary for all audits'),
         } as any),
       );
 
@@ -383,6 +392,13 @@ describe('POST /api/audit', () => {
       (AuditService as jest.MockedClass<typeof AuditService>).mockImplementation(
         () => ({
           executeAudit: jest.fn().mockResolvedValue(mockAuditResult),
+        } as any),
+      );
+
+      // Mock SummaryGenerationService
+      (SummaryGenerationService as jest.MockedClass<typeof SummaryGenerationService>).mockImplementation(
+        () => ({
+          generateSummary: jest.fn().mockResolvedValue('Mock AI summary for all audits'),
         } as any),
       );
 

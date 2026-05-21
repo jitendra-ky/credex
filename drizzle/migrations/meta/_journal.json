@@ -29,6 +29,20 @@
       "when": 1778604968131,
       "tag": "0003_nebulous_frog_thor",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1779312242948,
+      "tag": "0004_tough_nocturne",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1779349618538,
+      "tag": "0005_next_lady_deathstrike",
+      "breakpoints": true
     }
   ]
 }

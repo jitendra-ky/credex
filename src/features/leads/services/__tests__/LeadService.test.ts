@@ -33,6 +33,7 @@ describe('LeadService', () => {
 
       mockQueries.getLeadByEmail.mockResolvedValue(undefined);
       mockQueries.getLeadsByIpInWindow.mockResolvedValue([]);
+      mockQueries.createLeadAudit.mockResolvedValue({});
       mockQueries.upsertLead.mockResolvedValue({
         id: 'lead-123',
         email: 'test@example.com',
@@ -115,6 +116,7 @@ describe('LeadService', () => {
 
       mockQueries.getLeadByEmail.mockResolvedValue(undefined);
       mockQueries.getLeadsByIpInWindow.mockResolvedValue([]);
+      mockQueries.getLatestAuditIdForLead.mockResolvedValue(null);
       mockQueries.upsertLead.mockResolvedValue({
         id: 'lead-123',
         email: 'test@example.com',
@@ -138,7 +140,6 @@ describe('LeadService', () => {
         'Acme Corp',
         'CEO',
         '192.168.1.1',
-        undefined,
       );
     });
 
@@ -152,6 +153,7 @@ describe('LeadService', () => {
 
       mockQueries.getLeadByEmail.mockResolvedValue(undefined);
       mockQueries.getLeadsByIpInWindow.mockResolvedValue([]);
+      mockQueries.createLeadAudit.mockResolvedValue({});
       mockQueries.upsertLead.mockResolvedValue({
         id: 'lead-123',
         email: 'test@example.com',
@@ -177,6 +179,7 @@ describe('LeadService', () => {
 
       mockQueries.getLeadByEmail.mockResolvedValue(undefined);
       mockQueries.getLeadsByIpInWindow.mockResolvedValue([]);
+      mockQueries.getLatestAuditIdForLead.mockResolvedValue(null);
       mockQueries.upsertLead.mockResolvedValue({
         id: 'lead-123',
         email: 'test@example.com',
@@ -203,6 +206,7 @@ describe('LeadService', () => {
 
       mockQueries.getLeadByEmail.mockResolvedValue(undefined);
       mockQueries.getLeadsByIpInWindow.mockResolvedValue([]);
+      mockQueries.getLatestAuditIdForLead.mockResolvedValue(null);
       mockQueries.upsertLead.mockResolvedValue({
         id: 'lead-123',
         email: 'test@example.com',
@@ -240,6 +244,7 @@ describe('LeadService', () => {
 
       mockQueries.getLeadByEmail.mockResolvedValue(existingLead);
       mockQueries.getLeadsByIpInWindow.mockResolvedValue([]);
+      mockQueries.getLatestAuditIdForLead.mockResolvedValue(null);
       mockQueries.upsertLead.mockResolvedValue(existingLead);
 
       const result = await service.captureLead(request, '192.168.1.1');
