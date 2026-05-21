@@ -2,6 +2,7 @@
  * POST /api/leads
  * Lead capture endpoint
  * Accepts: email, company_name, role, audit_id
+ * audit_id is stored in leadAuditsTable (not on the lead row itself)
  * Returns: Saved lead with is_new flag
  */
 

@@ -102,7 +102,6 @@ export async function listAudits(
  * @param company_name - The lead's company name (optional)
  * @param role - The lead's job role (optional)
  * @param ip_address - The client IP address for rate limiting
- * @param audit_id - Optional reference to an audit record
  * @returns The upserted lead record
  * @throws Error if database operation fails
  */
@@ -111,7 +110,6 @@ export async function upsertLead(
   company_name: string | null | undefined,
   role: string | null | undefined,
   ip_address: string,
-  audit_id?: string | null,
 ): Promise<Lead> {
   const db = getDb();
 
@@ -120,7 +118,6 @@ export async function upsertLead(
     company_name,
     role,
     ip_address,
-    audit_id: audit_id || null,
     updated_at: new Date(),
   };
 
@@ -132,7 +129,6 @@ export async function upsertLead(
       set: {
         company_name,
         role,
-        audit_id: audit_id || null,
         updated_at: new Date(),
       },
     })
@@ -190,6 +186,30 @@ export async function getLeadsByIpInWindow(
     .orderBy(leadsTable.created_at);
 
   return leads;
+}
+
+/**
+ * Get the latest audit_id for a lead from the leadAuditsTable.
+ * Returns the audit_id of the most recently created, non-stale lead_audit row.
+ * @param leadId - UUID of the lead
+ * @returns The audit_id string, or null if no audit exists
+ */
+export async function getLatestAuditIdForLead(leadId: string): Promise<string | null> {
+  const db = getDb();
+
+  const [row] = await db
+    .select({ audit_id: leadAuditsTable.audit_id })
+    .from(leadAuditsTable)
+    .where(
+      and(
+        eq(leadAuditsTable.lead_id, leadId),
+        eq(leadAuditsTable.is_stale, false),
+      ),
+    )
+    .orderBy(desc(leadAuditsTable.created_at))
+    .limit(1);
+
+  return row?.audit_id ?? null;
 }
 
 /**

@@ -5,7 +5,7 @@
  */
 
 import { leadRequestSchema } from '@/lib/validators';
-import { upsertLead, getLeadByEmail, createLeadAudit } from '@/lib/db/queries';
+import { upsertLead, getLeadByEmail, createLeadAudit, getLatestAuditIdForLead } from '@/lib/db/queries';
 import { ValidationError, ServiceError } from '@/lib/api/errors';
 import { RateLimitService } from './RateLimitService';
 import { EmailService } from './EmailService';
@@ -57,7 +57,6 @@ export class LeadService {
         validated.company_name,
         validated.role,
         ipAddress,
-        validated.audit_id,
       );
     } catch (error) {
       throw new ServiceError('Failed to save lead', {
@@ -83,12 +82,17 @@ export class LeadService {
       validated.company_name,
     );
 
+    // Derive audit_id from leadAuditsTable instead of the deprecated leadsTable.audit_id
+    const latestAuditId = validated.audit_id
+      ? validated.audit_id  // We just created/have the lead_audit row with this audit_id
+      : await getLatestAuditIdForLead(lead.id);
+
     return {
       id: lead.id,
       email: lead.email,
       company_name: lead.company_name,
       role: lead.role,
-      audit_id: lead.audit_id,
+      audit_id: latestAuditId,
       created_at: lead.created_at,
       updated_at: lead.updated_at,
       is_new: isNew,

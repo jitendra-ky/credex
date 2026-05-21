@@ -101,6 +101,9 @@ export const leadsTable = pgTable(
   'leads',
   {
     id: uuid('id').primaryKey().defaultRandom(),
+    // DEPRECATED: Use leadAuditsTable to find the audit(s) for a lead.
+    // Kept in the schema so Drizzle doesn't try to DROP the column.
+    // Will be removed in a future migration after all data is backfilled.
     audit_id: uuid('audit_id'),
     email: text('email').notNull(),
     company_name: text('company_name'),
@@ -115,7 +118,7 @@ export const leadsTable = pgTable(
   },
   (table) => ({
     emailUnique: uniqueIndex('leads_email_unique').on(table.email),
-    auditIdIdx: index('leads_audit_id_idx').on(table.audit_id),
+    // audit_id index removed — column is deprecated, queries use leadAuditsTable
     createdAtIdx: index('leads_created_at_idx').on(table.created_at),
     ipAddressIdx: index('leads_ip_address_idx').on(table.ip_address),
   }),
