@@ -24,6 +24,16 @@ interface IEmailProvider {
    * Send a confirmation email after a lead has been successfully captured.
    */
   sendConfirmation(email: string, companyName?: string | null): Promise<void>;
+
+  /**
+   * Notify a lead that their audit result changed due to an engine version bump.
+   */
+  sendReauditNotification(
+    email: string,
+    savingsDeltaUsd: number,
+    newTag: string,
+    oldAuditId: string,
+  ): Promise<void>;
 }
 
 // ── Mock provider (development) ───────────────────────────────────────────────
@@ -44,6 +54,22 @@ class MockEmailProvider implements IEmailProvider {
       `\n[MOCK EMAIL] ── Lead Confirmation ──────────────────\n` +
       `  To:      ${email}\n` +
       `  Company: ${companyName ?? '(not provided)'}\n` +
+      `────────────────────────────────────────────────────\n`,
+    );
+  }
+
+  async sendReauditNotification(
+    email: string,
+    savingsDeltaUsd: number,
+    newTag: string,
+    oldAuditId: string,
+  ): Promise<void> {
+    console.log(
+      `\n[MOCK EMAIL] ── Re-audit Notification ──────────────\n` +
+      `  To:           ${email}\n` +
+      `  Savings delta: $${savingsDeltaUsd.toFixed(2)}/mo\n` +
+      `  New tag:       ${newTag}\n` +
+      `  Re-run link:   /audit/${oldAuditId}?rerun=true\n` +
       `────────────────────────────────────────────────────\n`,
     );
   }
@@ -116,6 +142,51 @@ class ResendEmailProvider implements IEmailProvider {
       `,
     });
   }
+
+  async sendReauditNotification(
+    email: string,
+    savingsDeltaUsd: number,
+    newTag: string,
+    oldAuditId: string,
+  ): Promise<void> {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://credex.rocks';
+    const rerunUrl = `${baseUrl}/audit/${oldAuditId}?rerun=true`;
+    const deltaSign = savingsDeltaUsd >= 0 ? '+' : '';
+    const deltaLabel = `${deltaSign}$${Math.abs(savingsDeltaUsd).toFixed(0)}/mo`;
+
+    await this.resend.emails.send({
+      from: this.fromAddress,
+      to: email,
+      subject: 'Your Credex audit has changed — new savings detected',
+      text:
+        `AI tool pricing has changed since your last audit.\n\n` +
+        `Savings delta: ${deltaLabel}\n` +
+        `New audit tag: ${newTag}\n\n` +
+        `Re-run your audit to see the full breakdown:\n${rerunUrl}`,
+      html: `
+        <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px">
+          <h2 style="color:#0f172a;margin-bottom:8px">Your audit results have changed</h2>
+          <p style="color:#64748b;margin-bottom:24px">
+            AI tool pricing has changed since your last Credex audit.
+            We re-ran your stack with the updated rules and found a difference.
+          </p>
+          <div style="background:#f1f5f9;border-radius:12px;padding:20px;margin-bottom:24px">
+            <p style="margin:0 0 8px;color:#64748b;font-size:13px">SAVINGS CHANGE</p>
+            <p style="margin:0;font-size:28px;font-weight:700;color:#0f172a">${deltaLabel}</p>
+            <p style="margin:8px 0 0;color:#64748b;font-size:13px">New rating: <strong>${newTag}</strong></p>
+          </div>
+          <a href="${rerunUrl}"
+             style="display:inline-block;background:#0f172a;color:#fff;padding:14px 28px;
+                    border-radius:8px;text-decoration:none;font-weight:600">
+            See what changed →
+          </a>
+          <p style="color:#94a3b8;font-size:12px;margin-top:32px">
+            — The Credex team
+          </p>
+        </div>
+      `,
+    });
+  }
 }
 
 // ── Public EmailService facade ────────────────────────────────────────────────
@@ -153,5 +224,19 @@ export class EmailService {
     } catch (error) {
       console.error('[EmailService] sendLeadConfirmation failed:', error);
     }
+  }
+
+  /**
+   * Notify a lead that their audit changed due to an engine version bump.
+   * Called by scripts/run-reaudit.ts — errors are re-thrown so the script
+   * can mark the notification as failed in the DB.
+   */
+  async sendReauditNotification(
+    email: string,
+    savingsDeltaUsd: number,
+    newTag: string,
+    oldAuditId: string,
+  ): Promise<void> {
+    await this.provider.sendReauditNotification(email, savingsDeltaUsd, newTag, oldAuditId);
   }
 }

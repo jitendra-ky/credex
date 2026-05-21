@@ -5,11 +5,12 @@
  */
 
 import { leadRequestSchema } from '@/lib/validators';
-import { upsertLead, getLeadByEmail } from '@/lib/db/queries';
+import { upsertLead, getLeadByEmail, createLeadAudit } from '@/lib/db/queries';
 import { ValidationError, ServiceError } from '@/lib/api/errors';
 import { RateLimitService } from './RateLimitService';
 import { EmailService } from './EmailService';
 import type { LeadResponse } from '../types';
+import { AUDIT_ENGINE_VERSION } from '@/features/audit/engine/version';
 
 export class LeadService {
   private rateLimitService: RateLimitService;
@@ -64,7 +65,19 @@ export class LeadService {
       });
     }
 
-    // Step 5: Send confirmation email (fire-and-forget)
+    // Step 5: Link lead to audit in lead_audits (Round 2)
+    // onConflictDoNothing: same email re-submitting same engine version is a safe no-op
+    if (validated.audit_id) {
+      await createLeadAudit({
+        lead_id: lead.id,
+        audit_id: validated.audit_id,
+        engine_version: AUDIT_ENGINE_VERSION,
+        is_stale: false,
+        previous_audit_id: null,
+      });
+    }
+
+    // Step 6: Send confirmation email (fire-and-forget)
     await this.emailService.sendLeadConfirmation(
       validated.email,
       validated.company_name,
