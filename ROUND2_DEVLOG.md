@@ -107,3 +107,47 @@ If `leadsTable` already links email → audit, why have `stored_audits` at all? 
 - a Mock email sending service was setup in round 1.
 - I choose to use "resend.com" email sending service due to two main reason it is free and easy to implement.
 - setup my own gmail for sending email too look profession i.e. (credex@jitendraky.tech)
+
+## 2026-05-21 18:00 — Planning the re-audit pipeline architecture
+
+Started designing how the engine version bump actually triggers re-audits end-to-end.
+
+**Key architectural question:** where does the trigger live?
+- First instinct was a `POST /api/detect-changes` endpoint that GitHub Actions calls via curl.
+- Rejected this — adds an unnecessary HTTP layer and requires a secret token just to call our own server. Simpler to run the logic directly inside the GH Actions runner.
+- **Decision:** standalone `scripts/run-reaudit.ts` executed via `npx tsx`, with `DATABASE_URL` and `RESEND_API_KEY` injected as GitHub repo secrets. No endpoint needed.
+
+**Trigger file strategy:**
+GitHub Actions `paths` filter on `src/features/audit/engine/version.ts` only. Bumping that one file is the single action that kicks off the entire pipeline. Nothing else triggers it.
+
+**Stale detection logic:**
+- For each lead, find their most recent `lead_audits` row (latest `created_at`).
+- If that row's `engine_version` differs from `AUDIT_ENGINE_VERSION` → stale.
+- Re-run only that lead's latest audit, not all historical ones.
+- Compare: if `total_monthly_savings_usd` or `audit_tag` changed → persist. Otherwise discard.
+
+## 2026-05-21 18:30 — Implementing the re-audit system
+
+Built all 6 components of the system:
+
+1. `src/features/audit/engine/version.ts` — `AUDIT_ENGINE_VERSION = '1.0.0'` constant.
+2. `src/lib/db/queries.ts` — 5 new functions: `createLeadAudit`, `getLatestLeadAuditPerLead`, `markLeadAuditStale`, `createReauditNotification`, `updateNotificationStatus`.
+3. `src/features/leads/services/LeadService.ts` — calls `createLeadAudit` after `upsertLead` so every lead has a `lead_audits` entry from the start.
+4. `src/features/leads/services/EmailService.ts` — added `sendReauditNotification()` to both Mock and Resend providers. Email includes savings delta and a one-click re-run link to `/audit/[oldAuditId]?rerun=true`.
+5. `scripts/run-reaudit.ts` — the full pipeline script.
+6. `.github/workflows/reaudit.yml` — triggers on `version.ts` change on `main`, runs script directly.
+
+TypeScript type-check passed with zero errors after implementation.
+
+## 2026-05-21 19:00 — Design correction on lead_audits write responsibility
+
+Caught an architectural issue after review: I was writing to `lead_audits` inside `LeadService.captureLead()` on every lead form submission. This is wrong.
+
+**The problem:** `lead_audits` is designed to track the *re-audit history* for a lead — one row per engine version bump. Writing to it on initial capture couples the initial flow to the re-audit system and blurs the table's single responsibility.
+
+**Correct design:**
+- `leadsTable.audit_id` = the original audit. Written by `/api/leads` as always.
+- `lead_audits` = written exclusively by `scripts/run-reaudit.ts` when an engine version bump produces a changed result.
+- The script detects staleness by querying `leadsTable` for leads that have no `lead_audits` row for the current version yet (NOT EXISTS pattern), not by reading from `lead_audits` directly.
+
+This keeps `lead_audits` as a pure re-audit history table and `leadsTable` behavior completely unchanged.
