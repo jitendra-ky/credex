@@ -269,3 +269,40 @@ export const leadRequestSchema = z.object({
 
 export type ValidatedLeadRequest = z.infer<typeof leadRequestSchema>;
 
+/**
+ * OTP send request schema
+ * Validates incoming POST /api/leads/send-otp requests
+ */
+export const sendOtpRequestSchema = z.object({
+  email: z
+    .string()
+    .trim()
+    .email('Invalid email address')
+    .transform((v) => v.toLowerCase()),
+});
+
+export type ValidatedSendOtpRequest = z.infer<typeof sendOtpRequestSchema>;
+
+/**
+ * OTP verify request schema
+ * Validates incoming POST /api/leads/verify-otp requests
+ * Combines the OTP code with the lead capture payload so both happen atomically
+ */
+export const verifyOtpRequestSchema = z.object({
+  email: z
+    .string()
+    .trim()
+    .email('Invalid email address')
+    .transform((v) => v.toLowerCase()),
+  otp_code: z
+    .string()
+    .length(6, 'Code must be exactly 6 digits')
+    .regex(/^\d{6}$/, 'Code must contain only digits'),
+  company_name: z.string().trim().nullable().optional(),
+  role: z.string().trim().nullable().optional(),
+  audit_id: z.string().uuid('Invalid audit ID format').optional(),
+});
+
+export type ValidatedVerifyOtpRequest = z.infer<typeof verifyOtpRequestSchema>;
+
+
