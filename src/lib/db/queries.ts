@@ -8,15 +8,20 @@ import { getDb } from './client';
 import {
   auditsTable,
   leadsTable,
+  leadAuditsTable,
+  reauditNotificationsTable,
   emailVerificationsTable,
   type NewAudit,
   type Audit,
   type NewLead,
   type Lead,
+  type NewLeadAudit,
+  type LeadAudit,
+  type NewReauditNotification,
   type NewEmailVerification,
   type EmailVerification,
 } from './schema';
-import { eq, and, gte, isNull, sql } from 'drizzle-orm';
+import { eq, and, gte, isNull, ne, sql, desc } from 'drizzle-orm';
 import { AuditRequest, AuditResult, AuditTag } from '@/features/audit/types/audit.types';
 
 /**
@@ -313,3 +318,154 @@ export async function markVerificationComplete(id: string): Promise<void> {
     .set({ verified_at: new Date() })
     .where(eq(emailVerificationsTable.id, id));
 }
+
+// ============================================================
+// ROUND 2 — Re-audit on Engine Version Change
+// ============================================================
+
+/**
+ * Insert a new lead_audits row linking a lead to an audit result.
+ * Uses onConflictDoNothing so re-submitting the same email+version is a safe no-op.
+ * The unique index (lead_id, engine_version) enforces one row per lead per version.
+ *
+ * @param data - lead_id, audit_id, engine_version, is_stale, previous_audit_id
+ * @returns The inserted row, or undefined if the row already exists
+ */
+export async function createLeadAudit(
+  data: NewLeadAudit,
+): Promise<LeadAudit | undefined> {
+  const db = getDb();
+
+  const [created] = await db
+    .insert(leadAuditsTable)
+    .values(data)
+    .onConflictDoNothing()
+    .returning();
+
+  return created;
+}
+
+/**
+ * Stale audit detection — per-lead latest row strategy.
+ *
+ * For every lead that has at least one lead_audits row, find the row with
+ * the highest created_at (= their most recent audit). Return only leads
+ * where that latest row was produced by an older engine version.
+ *
+ * Returns a joined result that includes everything the re-audit script needs:
+ * lead_audits columns + lead.email + audit.tools_json + audit.results_json
+ *
+ * @param currentEngineVersion - The AUDIT_ENGINE_VERSION constant
+ */
+export async function getLatestLeadAuditPerLead(currentEngineVersion: string) {
+  const db = getDb();
+
+  // Subquery: for each lead_id, the timestamp of their most recent lead_audits row
+  const latestPerLead = db
+    .select({
+      lead_id: leadAuditsTable.lead_id,
+      max_created_at: sql<Date>`MAX(${leadAuditsTable.created_at})`.as('max_created_at'),
+    })
+    .from(leadAuditsTable)
+    .groupBy(leadAuditsTable.lead_id)
+    .as('latest_per_lead');
+
+  // Main query: join to get full row, then join audits + leads for email and JSON
+  const rows = await db
+    .select({
+      // lead_audits columns
+      leadAuditId: leadAuditsTable.id,
+      leadId: leadAuditsTable.lead_id,
+      oldAuditId: leadAuditsTable.audit_id,
+      engineVersion: leadAuditsTable.engine_version,
+      // lead email (for notification)
+      email: leadsTable.email,
+      // audit data needed for re-run and comparison
+      toolsJson: auditsTable.tools_json,
+      oldResultsJson: auditsTable.results_json,
+    })
+    .from(leadAuditsTable)
+    .innerJoin(
+      latestPerLead,
+      and(
+        eq(leadAuditsTable.lead_id, latestPerLead.lead_id),
+        eq(leadAuditsTable.created_at, latestPerLead.max_created_at),
+      ),
+    )
+    .innerJoin(leadsTable, eq(leadAuditsTable.lead_id, leadsTable.id))
+    .innerJoin(auditsTable, eq(leadAuditsTable.audit_id, auditsTable.id))
+    .where(ne(leadAuditsTable.engine_version, currentEngineVersion));
+
+  return rows;
+}
+
+/**
+ * Mark a lead_audits row as stale.
+ * Called after a newer version's row has been successfully inserted.
+ *
+ * @param leadAuditId - UUID of the lead_audits row to mark stale
+ */
+export async function markLeadAuditStale(leadAuditId: string): Promise<void> {
+  const db = getDb();
+
+  await db
+    .update(leadAuditsTable)
+    .set({ is_stale: true })
+    .where(eq(leadAuditsTable.id, leadAuditId));
+}
+
+/**
+ * Insert a reaudit_notifications row for dedup tracking.
+ * Uses onConflictDoNothing — the unique index (lead_id, engine_version) ensures
+ * we never create duplicate notification records even if the script runs twice.
+ *
+ * @param leadId - UUID of the lead to notify
+ * @param engineVersion - The new engine version that triggered the change
+ * @returns The inserted row, or undefined if already exists
+ */
+export async function createReauditNotification(
+  leadId: string,
+  engineVersion: string,
+): Promise<void> {
+  const db = getDb();
+
+  const newNotification: NewReauditNotification = {
+    lead_id: leadId,
+    engine_version: engineVersion,
+    status: 'pending',
+  };
+
+  await db
+    .insert(reauditNotificationsTable)
+    .values(newNotification)
+    .onConflictDoNothing();
+}
+
+/**
+ * Update the status of a reaudit_notifications row after email dispatch.
+ *
+ * @param leadId - UUID of the lead
+ * @param engineVersion - The engine version that triggered the notification
+ * @param status - 'sent' | 'failed'
+ */
+export async function updateNotificationStatus(
+  leadId: string,
+  engineVersion: string,
+  status: 'sent' | 'failed',
+): Promise<void> {
+  const db = getDb();
+
+  await db
+    .update(reauditNotificationsTable)
+    .set({
+      status,
+      sent_at: status === 'sent' ? new Date() : null,
+    })
+    .where(
+      and(
+        eq(reauditNotificationsTable.lead_id, leadId),
+        eq(reauditNotificationsTable.engine_version, engineVersion),
+      ),
+    );
+}
+
